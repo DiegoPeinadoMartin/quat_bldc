@@ -1,0 +1,327 @@
+2024-02-06 17:55:49,682 - aqt.main - INFO - installer 140567063384064 aqtinstall(aqt) v3.1.6 on Python 3.10.12 [CPython GCC 11.4.0]
+2024-02-06 17:55:49,683 - aqt.helper - DEBUG - helper 140567063384064 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/Updates.xml.sha256
+2024-02-06 17:55:50,754 - aqt.helper - DEBUG - helper 140415336185856 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtbase-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:50,775 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtx11extras-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:50,786 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtmultimedia-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:50,803 - aqt.helper - DEBUG - helper 140615907696640 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgraphicaleffects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:51,119 - aqt.helper - INFO - helper 140415336185856 Downloading qtbase...
+2024-02-06 17:55:51,120 - aqt.installer - DEBUG - installer 140415336185856 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtbase-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,126 - aqt.helper - INFO - helper 139914866675712 Downloading qtx11extras...
+2024-02-06 17:55:51,126 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtx11extras-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,158 - aqt.helper - INFO - helper 140711510667264 Downloading qtmultimedia...
+2024-02-06 17:55:51,158 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtmultimedia-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,177 - aqt.helper - INFO - helper 140615907696640 Downloading qtgraphicaleffects...
+2024-02-06 17:55:51,178 - aqt.installer - DEBUG - installer 140615907696640 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgraphicaleffects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,489 - aqt.helper - DEBUG - helper 140415336185856 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtbase-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,490 - aqt.helper - INFO - helper 140415336185856 Redirected: mirrors.20i.com
+2024-02-06 17:55:51,494 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtx11extras-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,494 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:55:51,520 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtmultimedia-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,521 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:55:51,544 - aqt.helper - DEBUG - helper 140615907696640 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgraphicaleffects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:51,544 - aqt.helper - INFO - helper 140615907696640 Redirected: mirrors.20i.com
+2024-02-06 17:55:51,874 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtx11extras-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.10047206
+2024-02-06 17:55:51,883 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebchannel-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:52,113 - aqt.installer - INFO - installer 140615907696640 Finished installation of qtgraphicaleffects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.31209215
+2024-02-06 17:55:52,123 - aqt.helper - DEBUG - helper 140615907696640 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsvg-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:52,254 - aqt.helper - INFO - helper 139914866675712 Downloading qtwebchannel...
+2024-02-06 17:55:52,255 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebchannel-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:52,475 - aqt.helper - INFO - helper 140615907696640 Downloading qtsvg...
+2024-02-06 17:55:52,476 - aqt.installer - DEBUG - installer 140615907696640 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsvg-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:52,613 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebchannel-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:52,613 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:55:52,829 - aqt.helper - DEBUG - helper 140615907696640 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsvg-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:52,829 - aqt.helper - INFO - helper 140615907696640 Redirected: mirrors.20i.com
+2024-02-06 17:55:52,940 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtwebchannel-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.05937256
+2024-02-06 17:55:52,952 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtdeclarative-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:53,312 - aqt.helper - INFO - helper 139914866675712 Downloading qtdeclarative...
+2024-02-06 17:55:53,312 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtdeclarative-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:53,603 - aqt.installer - INFO - installer 140615907696640 Finished installation of qtsvg-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.48114594
+2024-02-06 17:55:53,615 - aqt.helper - DEBUG - helper 140615907696640 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtimageformats-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:53,624 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtmultimedia-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.83988819
+2024-02-06 17:55:53,636 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttranslations-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:53,685 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtdeclarative-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:53,685 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:55:53,983 - aqt.helper - INFO - helper 140615907696640 Downloading qtimageformats...
+2024-02-06 17:55:53,983 - aqt.installer - DEBUG - installer 140615907696640 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtimageformats-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:53,987 - aqt.helper - INFO - helper 140711510667264 Downloading qttranslations...
+2024-02-06 17:55:53,988 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttranslations-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:54,375 - aqt.helper - DEBUG - helper 140615907696640 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtimageformats-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:54,375 - aqt.helper - INFO - helper 140615907696640 Redirected: mirrors.20i.com
+2024-02-06 17:55:54,403 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttranslations-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:54,403 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:55:55,802 - aqt.installer - INFO - installer 140615907696640 Finished installation of qtimageformats-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.18871664
+2024-02-06 17:55:55,812 - aqt.helper - DEBUG - helper 140615907696640 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttools-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:56,176 - aqt.helper - INFO - helper 140615907696640 Downloading qttools...
+2024-02-06 17:55:56,176 - aqt.installer - DEBUG - installer 140615907696640 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttools-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:56,559 - aqt.helper - DEBUG - helper 140615907696640 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qttools-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:56,559 - aqt.helper - INFO - helper 140615907696640 Redirected: mirrors.20i.com
+2024-02-06 17:55:57,520 - aqt.installer - INFO - installer 140711510667264 Finished installation of qttranslations-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 3.88532687
+2024-02-06 17:55:57,532 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtxmlpatterns-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:55:57,893 - aqt.helper - INFO - helper 140711510667264 Downloading qtxmlpatterns...
+2024-02-06 17:55:57,893 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtxmlpatterns-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:58,276 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtxmlpatterns-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:55:58,277 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:01,267 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtxmlpatterns-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 3.73668885
+2024-02-06 17:56:01,277 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsensors-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:01,700 - aqt.helper - INFO - helper 140711510667264 Downloading qtsensors...
+2024-02-06 17:56:01,700 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsensors-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:02,076 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtsensors-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:02,077 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:02,622 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtdeclarative-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 9.67211771
+2024-02-06 17:56:02,632 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebsockets-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:03,020 - aqt.helper - INFO - helper 139914866675712 Downloading qtwebsockets...
+2024-02-06 17:56:03,020 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebsockets-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:03,110 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtsensors-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.83521013
+2024-02-06 17:56:03,123 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialport-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:03,406 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebsockets-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:03,406 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:56:03,499 - aqt.helper - INFO - helper 140711510667264 Downloading qtserialport...
+2024-02-06 17:56:03,499 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialport-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:03,758 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtwebsockets-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.12662231
+2024-02-06 17:56:03,770 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:03,883 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialport-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:03,883 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:04,137 - aqt.helper - INFO - helper 139914866675712 Downloading qtquickcontrols...
+2024-02-06 17:56:04,138 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:04,216 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtserialport-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.09441401
+2024-02-06 17:56:04,224 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtlocation-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:04,525 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:04,526 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:56:04,594 - aqt.helper - INFO - helper 140711510667264 Downloading qtlocation...
+2024-02-06 17:56:04,594 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtlocation-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:04,955 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtlocation-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:04,955 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:06,357 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtlocation-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.13401901
+2024-02-06 17:56:06,370 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qt3d-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:06,784 - aqt.helper - INFO - helper 140711510667264 Downloading qt3d...
+2024-02-06 17:56:06,784 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qt3d-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:07,154 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qt3d-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:07,155 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:07,304 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtquickcontrols-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 3.53545412
+2024-02-06 17:56:07,318 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols2-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:07,701 - aqt.helper - INFO - helper 139914866675712 Downloading qtquickcontrols2...
+2024-02-06 17:56:07,702 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols2-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:08,068 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtquickcontrols2-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:08,069 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:56:08,971 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtquickcontrols2-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.65551741
+2024-02-06 17:56:08,984 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialbus-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:09,360 - aqt.helper - INFO - helper 139914866675712 Downloading qtserialbus...
+2024-02-06 17:56:09,360 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialbus-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:09,725 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtserialbus-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:09,725 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:56:10,735 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtserialbus-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.75270911
+2024-02-06 17:56:10,745 - aqt.helper - DEBUG - helper 139914866675712 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtscxml-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:11,118 - aqt.helper - INFO - helper 139914866675712 Downloading qtscxml...
+2024-02-06 17:56:11,119 - aqt.installer - DEBUG - installer 139914866675712 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtscxml-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:11,567 - aqt.helper - DEBUG - helper 139914866675712 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtscxml-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:11,567 - aqt.helper - INFO - helper 139914866675712 Redirected: mirrors.20i.com
+2024-02-06 17:56:12,793 - aqt.installer - INFO - installer 139914866675712 Finished installation of qtscxml-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.04964365
+2024-02-06 17:56:13,139 - aqt.helper - DEBUG - helper 140304247623680 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgamepad-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:13,221 - aqt.installer - INFO - installer 140711510667264 Finished installation of qt3d-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 6.85325299
+2024-02-06 17:56:13,236 - aqt.helper - DEBUG - helper 140711510667264 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebview-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:13,613 - aqt.helper - INFO - helper 140304247623680 Downloading qtgamepad...
+2024-02-06 17:56:13,614 - aqt.installer - DEBUG - installer 140304247623680 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgamepad-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:13,636 - aqt.helper - INFO - helper 140711510667264 Downloading qtwebview...
+2024-02-06 17:56:13,636 - aqt.installer - DEBUG - installer 140711510667264 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebview-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:14,019 - aqt.helper - DEBUG - helper 140304247623680 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtgamepad-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:14,019 - aqt.helper - INFO - helper 140304247623680 Redirected: mirrors.20i.com
+2024-02-06 17:56:14,024 - aqt.helper - DEBUG - helper 140711510667264 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwebview-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:14,024 - aqt.helper - INFO - helper 140711510667264 Redirected: mirrors.20i.com
+2024-02-06 17:56:14,602 - aqt.installer - INFO - installer 140711510667264 Finished installation of qtwebview-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.36859605
+2024-02-06 17:56:14,666 - aqt.installer - INFO - installer 140304247623680 Finished installation of qtgamepad-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.53040245
+2024-02-06 17:56:14,678 - aqt.helper - DEBUG - helper 140304247623680 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtspeech-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:14,969 - aqt.helper - DEBUG - helper 140634564886528 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwayland-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:15,091 - aqt.helper - INFO - helper 140304247623680 Downloading qtspeech...
+2024-02-06 17:56:15,091 - aqt.installer - DEBUG - installer 140304247623680 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtspeech-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:15,381 - aqt.helper - INFO - helper 140634564886528 Downloading qtwayland...
+2024-02-06 17:56:15,381 - aqt.installer - DEBUG - installer 140634564886528 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwayland-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:15,499 - aqt.helper - DEBUG - helper 140304247623680 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtspeech-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:15,499 - aqt.helper - INFO - helper 140304247623680 Redirected: mirrors.20i.com
+2024-02-06 17:56:15,819 - aqt.helper - DEBUG - helper 140634564886528 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtwayland-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:15,819 - aqt.helper - INFO - helper 140634564886528 Redirected: mirrors.20i.com
+2024-02-06 17:56:15,930 - aqt.installer - INFO - installer 140304247623680 Finished installation of qtspeech-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 1.25424454
+2024-02-06 17:56:15,944 - aqt.helper - DEBUG - helper 140304247623680 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601icu-linux-Rhel7.2-x64.7z.sha256
+2024-02-06 17:56:16,411 - aqt.helper - INFO - helper 140304247623680 Downloading icu...
+2024-02-06 17:56:16,411 - aqt.installer - DEBUG - installer 140304247623680 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601icu-linux-Rhel7.2-x64.7z
+2024-02-06 17:56:16,798 - aqt.helper - DEBUG - helper 140304247623680 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601icu-linux-Rhel7.2-x64.7z
+2024-02-06 17:56:16,799 - aqt.helper - INFO - helper 140304247623680 Redirected: mirrors.20i.com
+2024-02-06 17:56:17,342 - aqt.installer - INFO - installer 140615907696640 Finished installation of qttools-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 21.53136595
+2024-02-06 17:56:17,465 - aqt.installer - INFO - installer 140415336185856 Finished installation of qtbase-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 26.71374008
+2024-02-06 17:56:17,480 - aqt.helper - DEBUG - helper 140415336185856 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtconnectivity-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:17,783 - aqt.installer - INFO - installer 140634564886528 Finished installation of qtwayland-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.81777370
+2024-02-06 17:56:17,795 - aqt.helper - DEBUG - helper 140634564886528 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtremoteobjects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z.sha256
+2024-02-06 17:56:17,857 - aqt.helper - INFO - helper 140415336185856 Downloading qtconnectivity...
+2024-02-06 17:56:17,857 - aqt.installer - DEBUG - installer 140415336185856 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtconnectivity-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:18,180 - aqt.helper - INFO - helper 140634564886528 Downloading qtremoteobjects...
+2024-02-06 17:56:18,180 - aqt.installer - DEBUG - installer 140634564886528 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtremoteobjects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:18,256 - aqt.helper - DEBUG - helper 140415336185856 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtconnectivity-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:18,257 - aqt.helper - INFO - helper 140415336185856 Redirected: mirrors.20i.com
+2024-02-06 17:56:18,569 - aqt.helper - DEBUG - helper 140634564886528 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/qt5_5152/qt.qt5.5152.gcc_64/5.15.2-0-202011130601qtremoteobjects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z
+2024-02-06 17:56:18,569 - aqt.helper - INFO - helper 140634564886528 Redirected: mirrors.20i.com
+2024-02-06 17:56:20,033 - aqt.installer - INFO - installer 140634564886528 Finished installation of qtremoteobjects-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.24033037
+2024-02-06 17:56:20,098 - aqt.installer - INFO - installer 140415336185856 Finished installation of qtconnectivity-Linux-RHEL_7_6-GCC-Linux-RHEL_7_6-X86_64.7z in 2.61976038
+2024-02-06 17:56:24,612 - aqt.installer - INFO - installer 140304247623680 Finished installation of icu-linux-Rhel7.2-x64.7z in 8.66953374
+2024-02-06 17:56:24,709 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/bin/qmake
+2024-02-06 17:56:24,744 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5WebChannel.pc
+2024-02-06 17:56:24,745 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Core.pc
+2024-02-06 17:56:24,745 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DInput.pc
+2024-02-06 17:56:24,745 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Sensors.pc
+2024-02-06 17:56:24,745 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5MultimediaWidgets.pc
+2024-02-06 17:56:24,745 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5TextToSpeech.pc
+2024-02-06 17:56:24,746 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DAnimation.pc
+2024-02-06 17:56:24,746 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5WaylandClient.pc
+2024-02-06 17:56:24,746 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DRender.pc
+2024-02-06 17:56:24,746 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QmlModels.pc
+2024-02-06 17:56:24,746 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Positioning.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5SerialBus.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5OpenGLExtensions.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Location.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5RemoteObjects.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Sql.pc
+2024-02-06 17:56:24,747 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5OpenGL.pc
+2024-02-06 17:56:24,748 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QuickWidgets.pc
+2024-02-06 17:56:24,748 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Widgets.pc
+2024-02-06 17:56:24,748 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5WebView.pc
+2024-02-06 17:56:24,748 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DLogic.pc
+2024-02-06 17:56:24,749 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5WebSockets.pc
+2024-02-06 17:56:24,749 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5PrintSupport.pc
+2024-02-06 17:56:24,749 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuick.pc
+2024-02-06 17:56:24,750 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Help.pc
+2024-02-06 17:56:24,750 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Concurrent.pc
+2024-02-06 17:56:24,750 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5X11Extras.pc
+2024-02-06 17:56:24,750 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Qml.pc
+2024-02-06 17:56:24,751 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QuickControls2.pc
+2024-02-06 17:56:24,751 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Gamepad.pc
+2024-02-06 17:56:24,751 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuickInput.pc
+2024-02-06 17:56:24,751 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuickExtras.pc
+2024-02-06 17:56:24,752 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuickScene2D.pc
+2024-02-06 17:56:24,752 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5SerialPort.pc
+2024-02-06 17:56:24,752 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QmlWorkerScript.pc
+2024-02-06 17:56:24,752 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Nfc.pc
+2024-02-06 17:56:24,752 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5DBus.pc
+2024-02-06 17:56:24,753 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DCore.pc
+2024-02-06 17:56:24,753 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5XmlPatterns.pc
+2024-02-06 17:56:24,753 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Designer.pc
+2024-02-06 17:56:24,753 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Quick.pc
+2024-02-06 17:56:24,753 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5UiTools.pc
+2024-02-06 17:56:24,754 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Svg.pc
+2024-02-06 17:56:24,754 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Network.pc
+2024-02-06 17:56:24,754 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuickRender.pc
+2024-02-06 17:56:24,755 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DExtras.pc
+2024-02-06 17:56:24,755 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QuickTest.pc
+2024-02-06 17:56:24,755 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Multimedia.pc
+2024-02-06 17:56:24,755 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt53DQuickAnimation.pc
+2024-02-06 17:56:24,756 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Gui.pc
+2024-02-06 17:56:24,756 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Xml.pc
+2024-02-06 17:56:24,756 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5QuickTemplates2.pc
+2024-02-06 17:56:24,756 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Test.pc
+2024-02-06 17:56:24,757 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5PositioningQuick.pc
+2024-02-06 17:56:24,757 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Scxml.pc
+2024-02-06 17:56:24,757 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5UiPlugin.pc
+2024-02-06 17:56:24,757 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5RepParser.pc
+2024-02-06 17:56:24,758 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/pkgconfig/Qt5Bluetooth.pc
+2024-02-06 17:56:24,758 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5ThemeSupport.la
+2024-02-06 17:56:24,759 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5VulkanSupport.la
+2024-02-06 17:56:24,760 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Positioning.la
+2024-02-06 17:56:24,762 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5MultimediaQuick.la
+2024-02-06 17:56:24,763 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5XkbCommonSupport.la
+2024-02-06 17:56:24,765 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QmlModels.la
+2024-02-06 17:56:24,767 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5AccessibilitySupport.la
+2024-02-06 17:56:24,768 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DExtras.la
+2024-02-06 17:56:24,769 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Xml.la
+2024-02-06 17:56:24,770 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5WebSockets.la
+2024-02-06 17:56:24,771 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Quick.la
+2024-02-06 17:56:24,772 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5PositioningQuick.la
+2024-02-06 17:56:24,773 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Gamepad.la
+2024-02-06 17:56:24,775 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DLogic.la
+2024-02-06 17:56:24,776 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Bootstrap.la
+2024-02-06 17:56:24,778 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5EglFSDeviceIntegration.la
+2024-02-06 17:56:24,779 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5GlxSupport.la
+2024-02-06 17:56:24,780 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5OpenGL.la
+2024-02-06 17:56:24,781 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QmlDebug.la
+2024-02-06 17:56:24,783 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5WaylandClient.la
+2024-02-06 17:56:24,784 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Svg.la
+2024-02-06 17:56:24,785 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DCore.la
+2024-02-06 17:56:24,786 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Concurrent.la
+2024-02-06 17:56:24,787 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Location.la
+2024-02-06 17:56:24,788 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Sql.la
+2024-02-06 17:56:24,789 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickTemplates2.la
+2024-02-06 17:56:24,790 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5FontDatabaseSupport.la
+2024-02-06 17:56:24,791 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5MultimediaGstTools.la
+2024-02-06 17:56:24,793 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5PacketProtocol.la
+2024-02-06 17:56:24,794 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuickAnimation.la
+2024-02-06 17:56:24,796 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5SerialPort.la
+2024-02-06 17:56:24,798 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuick.la
+2024-02-06 17:56:24,799 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5X11Extras.la
+2024-02-06 17:56:24,800 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Widgets.la
+2024-02-06 17:56:24,802 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickTest.la
+2024-02-06 17:56:24,802 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuickInput.la
+2024-02-06 17:56:24,804 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Test.la
+2024-02-06 17:56:24,805 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5FbSupport.la
+2024-02-06 17:56:24,806 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5TextToSpeech.la
+2024-02-06 17:56:24,807 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QmlDevTools.la
+2024-02-06 17:56:24,808 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5UiTools.la
+2024-02-06 17:56:24,810 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5XcbQpa.la
+2024-02-06 17:56:24,811 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5DesignerComponents.la
+2024-02-06 17:56:24,812 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5WebView.la
+2024-02-06 17:56:24,813 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5EglFsKmsSupport.la
+2024-02-06 17:56:24,814 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5RemoteObjects.la
+2024-02-06 17:56:24,816 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Qml.la
+2024-02-06 17:56:24,818 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5DBus.la
+2024-02-06 17:56:24,819 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5PrintSupport.la
+2024-02-06 17:56:24,820 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5InputSupport.la
+2024-02-06 17:56:24,821 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5EventDispatcherSupport.la
+2024-02-06 17:56:24,822 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5KmsSupport.la
+2024-02-06 17:56:24,823 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5WebChannel.la
+2024-02-06 17:56:24,824 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5LinuxAccessibilitySupport.la
+2024-02-06 17:56:24,826 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5PlatformCompositorSupport.la
+2024-02-06 17:56:24,827 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Network.la
+2024-02-06 17:56:24,828 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickWidgets.la
+2024-02-06 17:56:24,829 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Core.la
+2024-02-06 17:56:24,831 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Nfc.la
+2024-02-06 17:56:24,832 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Gui.la
+2024-02-06 17:56:24,833 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuickScene2D.la
+2024-02-06 17:56:24,835 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QmlWorkerScript.la
+2024-02-06 17:56:24,837 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuickRender.la
+2024-02-06 17:56:24,838 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/Qt5UiPlugin.la
+2024-02-06 17:56:24,840 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DRender.la
+2024-02-06 17:56:24,841 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DAnimation.la
+2024-02-06 17:56:24,843 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5ServiceSupport.la
+2024-02-06 17:56:24,844 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DQuickExtras.la
+2024-02-06 17:56:24,845 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Multimedia.la
+2024-02-06 17:56:24,846 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5EdidSupport.la
+2024-02-06 17:56:24,847 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Sensors.la
+2024-02-06 17:56:24,848 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Help.la
+2024-02-06 17:56:24,850 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5MultimediaWidgets.la
+2024-02-06 17:56:24,851 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5EglSupport.la
+2024-02-06 17:56:24,852 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickControls2.la
+2024-02-06 17:56:24,853 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5DeviceDiscoverySupport.la
+2024-02-06 17:56:24,854 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5XmlPatterns.la
+2024-02-06 17:56:24,856 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Bluetooth.la
+2024-02-06 17:56:24,857 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5OpenGLExtensions.la
+2024-02-06 17:56:24,859 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickShapes.la
+2024-02-06 17:56:24,860 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5QuickParticles.la
+2024-02-06 17:56:24,861 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/Qt5RepParser.la
+2024-02-06 17:56:24,862 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt53DInput.la
+2024-02-06 17:56:24,864 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Designer.la
+2024-02-06 17:56:24,865 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5SerialBus.la
+2024-02-06 17:56:24,866 - aqt.updater - INFO - updater 140567063384064 Patching /home/bicho/BLDC/quat_bldc/tools/Qt/5.15.2/gcc_64/lib/libQt5Scxml.la
+2024-02-06 17:56:24,867 - aqt.main - INFO - installer 140567063384064 Finished installation
+2024-02-06 17:56:24,867 - aqt.main - INFO - installer 140567063384064 Time elapsed: 35.18512473 second
+2024-02-06 17:56:25,140 - aqt.main - INFO - installer 139692814483456 aqtinstall(aqt) v3.1.6 on Python 3.10.12 [CPython GCC 11.4.0]
+2024-02-06 17:56:25,140 - aqt.helper - DEBUG - helper 139692814483456 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/Updates.xml.sha256
+2024-02-06 17:56:26,181 - aqt.helper - DEBUG - helper 139812681605120 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator.7z.sha256
+2024-02-06 17:56:26,227 - aqt.helper - DEBUG - helper 139827504353280 Attempt to download checksum at https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator_sdktool.7z.sha256
+2024-02-06 17:56:26,573 - aqt.helper - INFO - helper 139812681605120 Downloading qt.tools.qtcreator...
+2024-02-06 17:56:26,573 - aqt.installer - DEBUG - installer 139812681605120 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator.7z
+2024-02-06 17:56:26,597 - aqt.helper - INFO - helper 139827504353280 Downloading qt.tools.qtcreator...
+2024-02-06 17:56:26,597 - aqt.installer - DEBUG - installer 139827504353280 Download URL: https://download.qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator_sdktool.7z
+2024-02-06 17:56:26,955 - aqt.helper - DEBUG - helper 139812681605120 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator.7z
+2024-02-06 17:56:26,955 - aqt.helper - INFO - helper 139812681605120 Redirected: mirrors.20i.com
+2024-02-06 17:56:26,967 - aqt.helper - DEBUG - helper 139827504353280 Asked to redirect(302) to: https://mirrors.20i.com/pub/qt.io/online/qtsdkrepository/linux_x64/desktop/tools_qtcreator/qt.tools.qtcreator/9.0.0-0-202211220359qtcreator_sdktool.7z
+2024-02-06 17:56:26,967 - aqt.helper - INFO - helper 139827504353280 Redirected: mirrors.20i.com
+2024-02-06 17:56:30,699 - aqt.installer - INFO - installer 139827504353280 Finished installation of qtcreator_sdktool.7z in 4.47422187
+2024-02-06 17:57:06,661 - aqt.installer - INFO - installer 139812681605120 Finished installation of qtcreator.7z in 40.48161038
+2024-02-06 17:57:06,757 - aqt.main - INFO - installer 139692814483456 Finished installation
+2024-02-06 17:57:06,757 - aqt.main - INFO - installer 139692814483456 Time elapsed: 41.61711320 second
