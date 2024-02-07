@@ -32,11 +32,13 @@
 //#define DISABLE_HW_LIMITS
 
 #if !defined(HW_SOURCE) && !defined(HW_SOURCE_ALT)
-#error "No hardware source file set"
+//#error "No hardware source file set"
+HW_SOURCE = "hwconf/trampa/60_75/hw_60_75_core.c"
 #endif
 
 #ifndef HW_HEADER
-#error "No hardware header file set"
+//#error "No hardware header file set"
+HW_HEADER = "hwconf/trampa/60_75/hw_60_75_mk2.h"
 #endif
 
 #ifdef USER_MC_CONF
@@ -84,6 +86,8 @@
 //#define APP_CUSTOM_TO_USE			"app_motor_heater.c"
 //#include "er/app_erockit_conf_v2.h"
 //#include "finn/app_finn_az_conf.h"
+
+#define APP_CUSTOM_TO_USE		"app_quatBike.c"
 
 #include "hw.h"
 #include "mcconf_default.h"
