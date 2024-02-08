@@ -38,6 +38,7 @@ static volatile bool Quat_stop_now = true;
 static volatile bool Quat_is_running = false;
 
 static volatile bool quat_display_thread_is_running = false;
+static volatile bool quat_display_thread_stop_now = true;
 static volatile bool quat_display_uart_is_running = false;
 
 #define QUAT_DISPLAY_BAUD	9600
@@ -80,23 +81,32 @@ static quat_serial_buffer_t serial_buffer;
 
 
 void quat_display_serial_start(void) {
-//  estado_vehiculo = get_estado_vehiculo();
-  if (!quat_display_thread_is_running) {
-      chThdCreateStatic(quat_display_process_thread_wa, sizeof(quat_display_process_thread_wa), NORMALPRIO, quat_display_process_thread, NULL);
-      quat_display_thread_is_running = true;
-  }
-  serial_buffer.rd_ptr = 0;
-  serial_buffer.wr_ptr = 0;
+	quat_display_thread_stop_now = false;
+	if (!quat_display_thread_is_running) {
+	  chThdCreateStatic(quat_display_process_thread_wa, sizeof(quat_display_process_thread_wa), NORMALPRIO, quat_display_process_thread, NULL);
+	  quat_display_thread_is_running = true;
+	}
+	serial_buffer.rd_ptr = 0;
+	serial_buffer.wr_ptr = 0;
 
-  palSetPadMode(HW_UART_P_TX_PORT, HW_UART_P_TX_PIN, PAL_MODE_ALTERNATE(HW_UART_P_GPIO_AF) |
-          PAL_STM32_OSPEED_HIGHEST |
-          PAL_STM32_PUDR_PULLUP);
-  palSetPadMode(HW_UART_P_RX_PORT, HW_UART_P_RX_PIN, PAL_MODE_ALTERNATE(HW_UART_P_GPIO_AF) |
-          PAL_STM32_OSPEED_HIGHEST |
-          PAL_STM32_PUDR_PULLUP);
+	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_ALTERNATE(HW_UART_GPIO_AF) |
+		  PAL_STM32_OSPEED_HIGHEST |
+		  PAL_STM32_PUDR_PULLUP);
+	palSetPadMode(HW_UART_RX_PORT, HW_UART_RX_PIN, PAL_MODE_ALTERNATE(HW_UART_GPIO_AF) |
+		  PAL_STM32_OSPEED_HIGHEST |
+		  PAL_STM32_PUDR_PULLUP);
 
-  sdStart(&HW_UART_P_DEV, &uart_cfg);
-  quat_display_uart_is_running = true;
+	sdStart(&HW_UART_DEV, &uart_cfg);
+	quat_display_uart_is_running = true;
+	commands_printf("START QUAT SerialDisp");
+}
+
+void quat_display_serial_stop(void){
+	quat_display_thread_stop_now = true;
+	while (quat_display_thread_is_running) {
+		chThdSleepMilliseconds(1);
+	}
+	commands_printf("STOP QUAT SerialDisp");
 }
 
 static uint16_t quat_checksum(uint8_t *buf, uint8_t len) {
@@ -109,7 +119,7 @@ static uint16_t quat_checksum(uint8_t *buf, uint8_t len) {
 
 static void quat_serial_send_packet(unsigned char *data, unsigned int len) {
 	if (quat_display_uart_is_running) {
-		sdWrite(&HW_UART_P_DEV, data, len);
+		sdWrite(&HW_UART_DEV, data, len);
 	}
 }
 
@@ -125,74 +135,73 @@ static void quat_serial_display_byte_process(unsigned char byte) {
 	rd_ptr = serial_buffer.rd_ptr;	//read pointer to try at different start addresses
 	// process with at least 3 bytes available to read
 	while( (serial_buffer.wr_ptr - rd_ptr ) > 2) {
-	    	if(serial_buffer.data[rd_ptr] == CMD_HEAD && serial_buffer.data[rd_ptr+1] == CMD_ADDRESS) {
-	    		// start bytes found
-	    		cmd_received = serial_buffer.data[rd_ptr+2];
-	    		if ( cmd_received == CMD_SETTINGS){
-	    			if( (serial_buffer.wr_ptr - rd_ptr) < MAX_RXBUFFSETTINGS)
-	    				return;
-	    			checksum_start = CHECKSUM_START_SETTINGS;
+		if(serial_buffer.data[rd_ptr] == CMD_HEAD && serial_buffer.data[rd_ptr+1] == CMD_ADDRESS) {
+			// start bytes found
+			cmd_received = serial_buffer.data[rd_ptr+2];
+			if ( cmd_received == CMD_SETTINGS){
+				if( (serial_buffer.wr_ptr - rd_ptr) < MAX_RXBUFFSETTINGS)
+					return;
+				checksum_start = CHECKSUM_START_SETTINGS;
 
-	    		} else if ( cmd_received  == CMD_RUNNING){
-	    			if( (serial_buffer.wr_ptr - rd_ptr) < MAX_RXBUFFRUNNING)
-	    				return;
-	    			checksum_start = CHECKSUM_START_RUNNNING;
-	    		}
-	    		if ( !(serial_buffer.data[rd_ptr+checksum_start+2]==CMD_END1 &&
-						 serial_buffer.data[rd_ptr+checksum_start+3]==CMD_END2)
-	    		){
-	    			// ha ido algo mal porque tengo todos los bytes del frame pero no coincide
-	    			// el final del frame. Elimino la cabecera y sigo buscando un frame entero
-	    			// quizás podría eliminar toda la longitud del frame, pero entonces igual me
-	    			// cargo un frame entero. Esta solución puede ser más lenta, pero quizás más
-	    			// segura
-	    			serial_buffer.rd_ptr += 2;
-	    			return;
-	    		}
-	    		checksum_addr = rd_ptr + checksum_start;
-				if(checksum_addr <= serial_buffer.wr_ptr) {	//check the checksum has been received
-
-					checksum_income = serial_buffer.data[checksum_addr]+ (serial_buffer.data[checksum_addr+1] <<8);
-				 // check sum
-					if( checksum_income == quat_checksum(serial_buffer.data + rd_ptr + 1, checksum_start-1) ) {
-						// enviar paquete al display con info de estado_Vehiculo
-						serial_buffer.tx[0] = CMD_HEAD;
-						serial_buffer.tx[1] = CMD_ADDRESS;
-						serial_buffer.tx[2] = cmd_received;
-						serial_buffer.tx[3] = DATA_LENGTH_ANSWER;
-						serial_buffer.tx[4] = 0x24;
-						serial_buffer.tx[5] = 0x00;
-						serial_buffer.tx[6] = 0x0D;
-						if (cmd_received == CMD_SETTINGS)
-							serial_buffer.tx[7] = password[serial_buffer.data[rd_ptr + 9]];
-						else
-							serial_buffer.tx[7] = 0xAC;
-						serial_buffer.tx[8] = 0x00;
-						checksum_outcome = quat_checksum(serial_buffer.tx+1, DATA_LENGTH_ANSWER+2);
-						serial_buffer.tx[9] = checksum_outcome & 0xFF;
-						serial_buffer.tx[10] = (checksum_outcome >> 8) & 0xFF;
-						serial_buffer.tx[11] = CMD_END1;
-						serial_buffer.tx[12] = CMD_END2;
-						quat_serial_send_packet(serial_buffer.tx, MAX_TXBUFF);
-						if (cmd_received == CMD_SETTINGS)
-							serial_buffer.rd_ptr = rd_ptr + MAX_RXBUFFSETTINGS-1;	//mark bytes as read
-						else
-							serial_buffer.rd_ptr = rd_ptr + MAX_RXBUFFRUNNING-1;	//mark bytes as read
-					}
+			} else if ( cmd_received  == CMD_RUNNING){
+				if( (serial_buffer.wr_ptr - rd_ptr) < MAX_RXBUFFRUNNING)
+					return;
+				checksum_start = CHECKSUM_START_RUNNNING;
+			}
+			if ( !(serial_buffer.data[rd_ptr+checksum_start+2]==CMD_END1 &&
+					 serial_buffer.data[rd_ptr+checksum_start+3]==CMD_END2)
+			){
+				// ha ido algo mal porque tengo todos los bytes del frame pero no coincide
+				// el final del frame. Elimino la cabecera y sigo buscando un frame entero
+				// quizás podría eliminar toda la longitud del frame, pero entonces igual me
+				// cargo un frame entero. Esta solución puede ser más lenta, pero quizás más
+				// segura
+				serial_buffer.rd_ptr += 2;
+				return;
+			}
+			checksum_addr = rd_ptr + checksum_start;
+			if(checksum_addr <= serial_buffer.wr_ptr) {	//check the checksum has been received
+				checksum_income = serial_buffer.data[checksum_addr]+ (serial_buffer.data[checksum_addr+1] <<8);
+				// check sum
+				if( checksum_income == quat_checksum(serial_buffer.data + rd_ptr + 1, checksum_start-1) ) {
+					// enviar paquete al display con info de estado_Vehiculo
+					serial_buffer.tx[0] = CMD_HEAD;
+					serial_buffer.tx[1] = CMD_ADDRESS;
+					serial_buffer.tx[2] = cmd_received;
+					serial_buffer.tx[3] = DATA_LENGTH_ANSWER;
+					serial_buffer.tx[4] = 0x24;
+					serial_buffer.tx[5] = 0x00;
+					serial_buffer.tx[6] = 0x0D;
+					if (cmd_received == CMD_SETTINGS)
+						serial_buffer.tx[7] = password[serial_buffer.data[rd_ptr + 9]];
+					else
+						serial_buffer.tx[7] = 0xAC;
+					serial_buffer.tx[8] = 0x00;
+					checksum_outcome = quat_checksum(serial_buffer.tx+1, DATA_LENGTH_ANSWER+2);
+					serial_buffer.tx[9] = checksum_outcome & 0xFF;
+					serial_buffer.tx[10] = (checksum_outcome >> 8) & 0xFF;
+					serial_buffer.tx[11] = CMD_END1;
+					serial_buffer.tx[12] = CMD_END2;
+					quat_serial_send_packet(serial_buffer.tx, MAX_TXBUFF);
+					if (cmd_received == CMD_SETTINGS)
+						serial_buffer.rd_ptr = rd_ptr + MAX_RXBUFFSETTINGS-1;	//mark bytes as read
+					else
+						serial_buffer.rd_ptr = rd_ptr + MAX_RXBUFFRUNNING-1;	//mark bytes as read
 				}
 			}
-			rd_ptr++;
-		  }
-		  if(serial_buffer.rd_ptr > 0) {
-			  memmove(serial_buffer.data, serial_buffer.data + serial_buffer.rd_ptr, QUAT_RX_BUFFER_SIZE - serial_buffer.rd_ptr);
-			  serial_buffer.wr_ptr -= serial_buffer.rd_ptr;
-			  serial_buffer.rd_ptr = 0;
-		  }
-		  if(serial_buffer.wr_ptr == (QUAT_RX_BUFFER_SIZE - 1) ) {
-			  //shift buffer to the left discarding the oldest byte
-			  memmove(serial_buffer.data,serial_buffer.data + 1, QUAT_RX_BUFFER_SIZE - 1);
-			  serial_buffer.wr_ptr -= 1;
-		  }
+		}
+		rd_ptr++;
+	}
+	if(serial_buffer.rd_ptr > 0) {
+		memmove(serial_buffer.data, serial_buffer.data + serial_buffer.rd_ptr, QUAT_RX_BUFFER_SIZE - serial_buffer.rd_ptr);
+		 serial_buffer.wr_ptr -= serial_buffer.rd_ptr;
+		 serial_buffer.rd_ptr = 0;
+	}
+	if(serial_buffer.wr_ptr == (QUAT_RX_BUFFER_SIZE - 1) ) {
+		//shift buffer to the left discarding the oldest byte
+		memmove(serial_buffer.data,serial_buffer.data + 1, QUAT_RX_BUFFER_SIZE - 1);
+		serial_buffer.wr_ptr -= 1;
+	}
 }
 
 
@@ -201,7 +210,7 @@ static void quat_serial_display_check_rx(void){
 	while (rx) {
 		rx = false;
 	    if (quat_display_uart_is_running) {
-	    	msg_t res = sdGetTimeout(&HW_UART_P_DEV, TIME_INFINITE);
+	    	msg_t res = sdGetTimeout(&HW_UART_DEV, TIME_INFINITE);
 	    	if (res != MSG_TIMEOUT) {
 	    		quat_serial_display_byte_process(res);
 	    		rx = true;
@@ -224,6 +233,7 @@ void app_custom_stop(void) {
 		chThdSleepMilliseconds(1);
 	}
 	commands_printf("STOP QuatApp");
+	quat_display_serial_stop();
 	//terminal_unregister_callback(terminal_test);
 }
 
@@ -249,7 +259,7 @@ void app_custom_configure(app_configuration *conf) {
 
 static THD_FUNCTION(quat_display_process_thread, arg) {
   (void)arg;
-  chRegSetThreadName("QUAT serial display");
+  chRegSetThreadName("QUAT SerialDisp");
 
   chThdSleepMilliseconds(500);
   for(;;) {
@@ -274,6 +284,11 @@ static THD_FUNCTION(quat_thread, arg) {
 	float samp = 0.0;
 
 	for(;;) {
+
+		if (Quat_stop_now) {
+			Quat_is_running = false;
+			return;
+		}
 		commands_plot_set_graph(0);
 		commands_send_plot_points(samp, mc_interface_temp_fet_filtered());
 		commands_plot_set_graph(1);
