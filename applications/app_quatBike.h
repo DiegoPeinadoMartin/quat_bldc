@@ -13,12 +13,4 @@
 #define HW_QUAD_SENSOR2_PORT	HW_UART_P_RX_PORT
 #define HW_QUAD_SENSOR2_PIN		HW_UART_P_RX_PIN
 
-
-typedef struct {
-	float pedal_rpm;
-	float motor_rpm;
-	float chainring_rpm;
-} t_bicycloidal_state;
-
-
 #endif /* APPLICATIONS_APP_QUATBIKE_H_ */
