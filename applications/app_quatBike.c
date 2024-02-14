@@ -31,10 +31,10 @@ static THD_FUNCTION(quat_thread, arg);
 static THD_WORKING_AREA(quat_thread_wa, 1024);
 
 static THD_FUNCTION(quat_display_process_thread, arg);
-static THD_WORKING_AREA(quat_display_process_thread_wa, 1024);
+static THD_WORKING_AREA(quat_display_process_thread_wa, 2048);
 
 static THD_FUNCTION(quat_cadence_process_thread, arg);
-static THD_WORKING_AREA(quat_cadence_process_thread_wa, 1024);
+static THD_WORKING_AREA(quat_cadence_process_thread_wa, 2048);
 
 // START AND STOP VARIABLES
 static volatile bool Quat_stop_now = true;
@@ -101,8 +101,11 @@ static uint8_t old_state = 0;
 static float old_timestamp = 0;
 static float inactivity_time = 0;
 static float period_filtered = 0;
-static int32_t correct_direction_counter = 0;
+float period_cadence = 0;
+//static int32_t correct_direction_counter = 0;
 
+static volatile uint8_t PAS1_level = 0;
+static volatile uint8_t PAS2_level = 0;
 
 // ************************************ CADENCE VARIABLES
 
@@ -115,12 +118,20 @@ static bool sendGraphs = false;
 float samp = 0.0;
 uint16_t periodo;
 
+typedef enum {
+	STOP = 0,
+	CLOSING_GAP,
+	STABLE,
+	SLIPING
+} t_motor_state;
+
+
 typedef struct {
 	float pedal_rpm;
 	float motor_rpm;
 	float motor_erpm;
 	float chainring_rpm;
-} t_bicycloidal_state;
+} t_bicycloidal_system;
 
 typedef struct {
 	uint8_t motor_periodH;
@@ -136,7 +147,7 @@ typedef struct {
 	float bike_intensity;
 	float assistance_program;
 	float motor_reference_erpm;
-} t_ebike_state;
+} t_ebike_variables;
 
 typedef struct{
 	float WheelRadius;
@@ -146,9 +157,9 @@ typedef struct{
 } t_ebike_conf;
 
 typedef struct {
-	t_bicycloidal_state myBicycloidal;  // Variables del bicicloidal
+	t_bicycloidal_system myBicycloidal;  // Variables del bicicloidal
 	t_display_data myDisplayData; 	// Variables enviadas al display
-	t_ebike_state myState;  // estado de la bicicleta/motor
+	t_ebike_variables myVariables;  // estado de la bicicleta/motor
 	t_ebike_conf myConf;  // configuración de la ebike
 } t_ebike_model;
 
@@ -394,6 +405,10 @@ void app_custom_configure(app_configuration *conf) {
 	min_cadence_period = 1.0 / ((AppConf->app_pas_conf.pedal_rpm_end * 3.0 / 60.0));
 	(AppConf->app_pas_conf.invert_pedal_direction) ? (direction_conf = -1.0) : (direction_conf = 1.0);
 
+	commands_printf("Max pulse period = %f", (double) max_pulse_period);
+	commands_printf("Min cadence period = %f", (double) min_cadence_period);
+	commands_printf("direction_conf = %f", (double) direction_conf);
+
 	// configuración para pruebas
 	myBike.myConf.K = (1.0 - 1.0/58.0)*(1.0 - 1.0/51.0);
 	myBike.myConf.I = myBike.myConf.K / ( 1.0 - myBike.myConf.K);
@@ -401,7 +416,7 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myConf.WheelRadius = mc_conf->si_wheel_diameter/2.0;
 	myBike.myConf.Rtransmision = mc_conf->si_gear_ratio;
 	myBike.myBicycloidal.chainring_rpm = 00;
-	myBike.myState.bike_velocity = RPM2RADPS_f(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius;
+	myBike.myVariables.bike_velocity = RPM2RADPS_f(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius;
 	periodo = 60000/(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision);
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
 	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
@@ -413,7 +428,6 @@ void app_init_graphs(void){
 	commands_plot_add_graph("Reference ERPM");
 	commands_plot_add_graph("Pedal Cadence");
 	commands_plot_add_graph("ChainRing Cadence");
-	//commands_plot_add_graph("Input Voltage");
 }
 
 void recalculaEstado(void){
@@ -425,15 +439,15 @@ void recalculaEstado(void){
 
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
 	//myBike.myState.bike_velocity = RPM2RADPS_f(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius;
-	myBike.myState.bike_velocity = get_kph_from_rpm(myBike.myBicycloidal.chainring_rpm);
+	myBike.myVariables.bike_velocity = get_kph_from_rpm(myBike.myBicycloidal.chainring_rpm);
 	if (myBike.myBicycloidal.chainring_rpm>0.01){
 		periodo = 60000/(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision);
 		periodo = (periodo > 3500) ? 3500: periodo;
 	} else periodo = 3500;
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
 	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
-	myBike.myState.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
-	myBike.myState.motor_reference_erpm = myBike.myConf.I*myBike.myState.assistance_program*myBike.myBicycloidal.pedal_rpm*mc_conf->si_motor_poles/2.0;
+	myBike.myVariables.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
+	myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.assistance_program*myBike.myBicycloidal.pedal_rpm*mc_conf->si_motor_poles/2.0;
 }
 
 // ************************************* MAIN APP EBIKE ***************************************************
@@ -449,6 +463,7 @@ static THD_FUNCTION(quat_display_process_thread, arg) {
   for(;;) {
     chThdSleepMilliseconds(100);
     quat_display_serial_check_rx();
+    timeout_reset();
   }
 }
 
@@ -459,40 +474,42 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	palSetPadMode(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN, PAL_MODE_INPUT_PULLUP);
 	palSetPadMode(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN, PAL_MODE_INPUT_PULLUP);
 
+	systime_t sleep_time2 = CH_CFG_ST_FREQUENCY / AppConf->app_pas_conf.update_rate_hz;
+	commands_printf("sleep time = %u", sleep_time2);
 	for(;;) {
+
+		//period_cadence = 0;
+		//cadence_rpm = 0;
+
 		systime_t sleep_time = CH_CFG_ST_FREQUENCY / AppConf->app_pas_conf.update_rate_hz;
 		// At least one tick should be slept to not block the other threads
 		if (sleep_time == 0) {
 			sleep_time = 1;
 		}
 		chThdSleep(sleep_time);
-		uint8_t PAS1_level = palReadPad(HW_PAS1_PORT, HW_PAS1_PIN);
-		uint8_t PAS2_level = palReadPad(HW_PAS2_PORT, HW_PAS2_PIN);
+		PAS1_level = palReadPad(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN);
+		PAS2_level = palReadPad(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN);
+
+		old_state = new_state;
 		new_state = PAS2_level * 2 + PAS1_level;
 		direction_qem = (float) QEM[old_state * 4 + new_state];
-		old_state = new_state;
-		// Require several quadrature events in the right direction to prevent vibrations from
-		// engging PAS
-		int8_t direction = (direction_conf * direction_qem);
-		switch(direction) {
-			case 1: correct_direction_counter++; break;
-			case -1:correct_direction_counter = 0; break;
-		}
+
 		const float timestamp = (float)chVTGetSystemTimeX() / (float)CH_CFG_ST_FREQUENCY;
 
-		if( (new_state == 3) && (correct_direction_counter >= 4) ) {
-			float period = (timestamp - old_timestamp) * (float)AppConf->app_pas_conf.magnets;
+		if (direction_qem == 2) continue;
+		if( new_state == 3 && direction_qem != 0) {
+			period_cadence = (timestamp - old_timestamp) * (float)AppConf->app_pas_conf.magnets;
 			old_timestamp = timestamp;
-			UTILS_LP_FAST(period_filtered, period, 1.0);
+			UTILS_LP_FAST(period_filtered, period_cadence, 0.1);
 			if(period_filtered < min_cadence_period) { //can't be that short, abort
-				return;
+				continue;
 			}
 			cadence_rpm = 60.0 / period_filtered;
 			cadence_rpm *= (direction_conf * (float)direction_qem);
 			inactivity_time = 0.0;
 		}	else {
 			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
-			//if no pedal activity, set RPM as zero
+			// if no pedal activity, set RPM as zero
 			if(inactivity_time > max_pulse_period) {
 				cadence_rpm = 0.0;
 			}
@@ -517,16 +534,15 @@ static THD_FUNCTION(quat_thread, arg) {
 			sleep_time = 1;
 		}
 		chThdSleep(sleep_time);
-
+		timeout_reset();
 		if (Quat_stop_now) {
 			Quat_is_running = false;
 			return;
 		}
 		recalculaEstado();
-		mc_interface_set_pid_speed(myBike.myState.motor_reference_erpm);
+		mc_interface_set_pid_speed(myBike.myVariables.motor_reference_erpm);
 
 		if (sendGraphs) sendGraphs_experiment();
-		chThdSleepMilliseconds(10);
 		timeout_reset();
 	}
 }
@@ -559,18 +575,24 @@ static void getProgram(int argc, const char **argv) {
 		commands_printf("Periodo H= %x", myBike.myDisplayData.motor_periodH);
 		commands_printf("Periodo L= %x", myBike.myDisplayData.motor_periodL);
 		commands_printf("ChainRing = %f", (double) myBike.myBicycloidal.chainring_rpm);
-		commands_printf("Vel = %f", (double) myBike.myState.bike_velocity);
+		commands_printf("Vel = %f", (double) myBike.myVariables.bike_velocity);
 		commands_printf("periodo = %u", periodo);
 
 		commands_printf("W1 = %f RPM", (double) myBike.myBicycloidal.pedal_rpm);
 		commands_printf("W2 = %f RPM", (double) myBike.myBicycloidal.motor_rpm);
 		commands_printf("W3 = %f RPM", (double) myBike.myBicycloidal.chainring_rpm);
 
-		commands_printf("W2ref = %f ERPM", (double) myBike.myState.motor_reference_erpm);
+		commands_printf("W2ref = %f ERPM", (double) myBike.myVariables.motor_reference_erpm);
 
 		commands_printf("Modo Display %u", myBike.myDisplayData.progDisplay);
-		commands_printf("Nivel Asistencia %f", (double) myBike.myState.assistance_program);
+		commands_printf("Nivel Asistencia %f", (double) myBike.myVariables.assistance_program);
 
+		commands_printf("Periodo cadencia = %f", (double) period_cadence);
+		commands_printf("Periodo filtrado = %f", (double) period_filtered);
+
+		commands_printf("new_state %d", new_state);
+		commands_printf("old_state %d", old_state);
+		commands_printf("direction qem %f", (double) direction_qem);
 
 	} else {
 		commands_printf("\n\r Uso quat_graph 1/0");
@@ -581,7 +603,7 @@ void sendGraphs_experiment(void){
 	commands_plot_set_graph(0);
 	commands_send_plot_points(samp, myBike.myBicycloidal.motor_erpm);
 	commands_plot_set_graph(1);
-	commands_send_plot_points(samp, myBike.myState.motor_reference_erpm);
+	commands_send_plot_points(samp, myBike.myVariables.motor_reference_erpm);
 	commands_plot_set_graph(2);
 	commands_send_plot_points(samp, myBike.myBicycloidal.pedal_rpm);
 	commands_plot_set_graph(3);
