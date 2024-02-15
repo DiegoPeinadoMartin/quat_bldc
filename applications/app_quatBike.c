@@ -111,6 +111,8 @@ static volatile uint8_t PAS2_level = 0;
 
 // ************************************ MAIN APP VARIABLES
 
+#define CONST_AP		79.5774715459
+
 static volatile app_configuration *AppConf;
 static const volatile mc_configuration *mc_conf;
 
@@ -146,7 +148,9 @@ typedef struct {
 	float bike_velocity;
 	float bike_intensity;
 	float assistance_program;
+	float effective_assistance_program;
 	float motor_reference_erpm;
+	float motor_torque;
 } t_ebike_variables;
 
 typedef struct{
@@ -154,6 +158,8 @@ typedef struct{
 	float Rtransmision;
 	float K;
 	float I;
+	float Motor_rev_max;
+	bool  modo_moto;
 } t_ebike_conf;
 
 typedef struct {
@@ -167,6 +173,7 @@ static t_ebike_model myBike;
 
 
 static float AP[] = {0, 0.25, 0.50, 0.75, 1.0, 1.5};
+static float NR[] = {0, 500, 1000, 1500, 2000, 2500};
 
 void recalculaEstado(void);
 static void setGraphOn(int argc, const char **argv);
@@ -192,7 +199,7 @@ float get_kph_from_erpm(float miErpm){
  * \brief Utility function to convert from RPM to km/h.
  */
 float get_kph_from_rpm(float miRpm){
-  return (miRpm*(3.6*mc_conf->si_wheel_diameter*M_PI)/(30.0*mc_conf->si_gear_ratio));
+  return (  3.6*(miRpm * M_PI/30.)*(0.5*mc_conf->si_wheel_diameter*mc_conf->si_gear_ratio) );
 }
 // ************************************* UTILITY ***************************************************
 
@@ -408,18 +415,22 @@ void app_custom_configure(app_configuration *conf) {
 	commands_printf("Max pulse period = %f", (double) max_pulse_period);
 	commands_printf("Min cadence period = %f", (double) min_cadence_period);
 	commands_printf("direction_conf = %f", (double) direction_conf);
+	commands_printf("Wheel Radius Conf = %f",  (double) (mc_interface_get_configuration()->si_wheel_diameter/2.0));
+	commands_printf("Transmission Ratio Conf = %f", (double) mc_interface_get_configuration()->si_gear_ratio);
+	commands_printf("Motor number of poles = %u", mc_interface_get_configuration()->si_motor_poles);
 
-	// configuración para pruebas
+	// configuración bicicloidal
 	myBike.myConf.K = (1.0 - 1.0/58.0)*(1.0 - 1.0/51.0);
 	myBike.myConf.I = myBike.myConf.K / ( 1.0 - myBike.myConf.K);
 
-	myBike.myConf.WheelRadius = mc_conf->si_wheel_diameter/2.0;
-	myBike.myConf.Rtransmision = mc_conf->si_gear_ratio;
-	myBike.myBicycloidal.chainring_rpm = 00;
-	myBike.myVariables.bike_velocity = RPM2RADPS_f(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius;
-	periodo = 60000/(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision);
-	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
-	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
+	// configuración bicicleta
+	myBike.myConf.WheelRadius = mc_interface_get_configuration()->si_wheel_diameter/2.0;
+	myBike.myConf.Rtransmision = mc_interface_get_configuration()->si_gear_ratio;
+
+	// configuración motor y modo
+	myBike.myConf.Motor_rev_max = AppConf->app_balance_conf.kp;
+	myBike.myConf.modo_moto = (AppConf->app_balance_conf.ki > 0.0) ? true: false;
+
 }
 
 void app_init_graphs(void){
@@ -431,23 +442,40 @@ void app_init_graphs(void){
 }
 
 void recalculaEstado(void){
+
+	myBike.myConf.WheelRadius = mc_interface_get_configuration()->si_wheel_diameter/2.0;
+	myBike.myConf.Rtransmision = mc_interface_get_configuration()->si_gear_ratio;
+
 	myBike.myBicycloidal.motor_erpm = mc_interface_get_rpm();
-	myBike.myBicycloidal.motor_erpm = (myBike.myBicycloidal.motor_erpm > 0.01) ? myBike.myBicycloidal.motor_erpm: 0.0;
+	myBike.myBicycloidal.motor_erpm = (fabsf( myBike.myBicycloidal.motor_erpm) > 1.0) ? myBike.myBicycloidal.motor_erpm: 0.0;
 
 	myBike.myBicycloidal.motor_rpm = myBike.myBicycloidal.motor_erpm / (mc_conf->si_motor_poles/2.0);
 	myBike.myBicycloidal.chainring_rpm = cadence_rpm;
 
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
-	//myBike.myState.bike_velocity = RPM2RADPS_f(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius;
-	myBike.myVariables.bike_velocity = get_kph_from_rpm(myBike.myBicycloidal.chainring_rpm);
-	if (myBike.myBicycloidal.chainring_rpm>0.01){
+	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 1.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
+
+	myBike.myVariables.bike_velocity = M_PI/30.0*(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision) * myBike.myConf.WheelRadius*3.6;
+
+	if (myBike.myBicycloidal.chainring_rpm>0.5){
 		periodo = 60000/(myBike.myBicycloidal.chainring_rpm * myBike.myConf.Rtransmision);
 		periodo = (periodo > 3500) ? 3500: periodo;
 	} else periodo = 3500;
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
 	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
+
 	myBike.myVariables.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
-	myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.assistance_program*myBike.myBicycloidal.pedal_rpm*mc_conf->si_motor_poles/2.0;
+	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, CONST_AP / (myBike.myConf.K * myBike.myConf.Rtransmision * myBike.myConf.WheelRadius * myBike.myBicycloidal.pedal_rpm));
+	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.effective_assistance_program, (myBike.myConf.Motor_rev_max) / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm));
+
+	myBike.myVariables.motor_torque = 0.75 * mc_conf->si_motor_poles * mc_interface_get_tot_current_filtered() * mc_conf->foc_motor_flux_linkage * 0.001;
+
+	if (myBike.myConf.modo_moto) {
+		myBike.myVariables.motor_reference_erpm = NR[(uint8_t) myBike.myDisplayData.progDisplay/51]; //*mc_interface_get_configuration()->si_motor_poles/2.0;
+	} else {
+		myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myBicycloidal.pedal_rpm; //*mc_interface_get_configuration()->si_motor_poles/2.0;
+	}
+
 }
 
 // ************************************* MAIN APP EBIKE ***************************************************
@@ -471,8 +499,8 @@ static THD_FUNCTION(quat_display_process_thread, arg) {
 static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	(void)arg;
 	chRegSetThreadName("QUAT Cadence");
-	palSetPadMode(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN, PAL_MODE_INPUT_PULLUP);
-	palSetPadMode(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN, PAL_MODE_INPUT_PULLUP);
+	palSetPadMode(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN, PAL_MODE_INPUT_PULLDOWN);
+	palSetPadMode(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN, PAL_MODE_INPUT_PULLDOWN);
 
 	systime_t sleep_time2 = CH_CFG_ST_FREQUENCY / AppConf->app_pas_conf.update_rate_hz;
 	commands_printf("sleep time = %u", sleep_time2);
@@ -574,25 +602,39 @@ static void getProgram(int argc, const char **argv) {
 		commands_printf("Received data = %u", myBike.myDisplayData.progDisplay);
 		commands_printf("Periodo H= %x", myBike.myDisplayData.motor_periodH);
 		commands_printf("Periodo L= %x", myBike.myDisplayData.motor_periodL);
-		commands_printf("ChainRing = %f", (double) myBike.myBicycloidal.chainring_rpm);
+		commands_printf("ChainRing = %f", (double) cadence_rpm);
 		commands_printf("Vel = %f", (double) myBike.myVariables.bike_velocity);
 		commands_printf("periodo = %u", periodo);
+		commands_printf("*******************************************************************************");
+		commands_printf("Wheel Radius = %f", (double) myBike.myConf.WheelRadius);
+		commands_printf("Transmission Ratio = %f", (double) myBike.myConf.Rtransmision);
+		commands_printf("Wheel Radius Conf = %f",  (double) (mc_conf->si_wheel_diameter/2.0));
+		commands_printf("Transmission Ratio Conf = %f", (double) mc_conf->si_gear_ratio);
 
+		commands_printf("*******************************************************************************");
 		commands_printf("W1 = %f RPM", (double) myBike.myBicycloidal.pedal_rpm);
 		commands_printf("W2 = %f RPM", (double) myBike.myBicycloidal.motor_rpm);
 		commands_printf("W3 = %f RPM", (double) myBike.myBicycloidal.chainring_rpm);
 
 		commands_printf("W2ref = %f ERPM", (double) myBike.myVariables.motor_reference_erpm);
-
+		commands_printf("*******************************************************************************");
 		commands_printf("Modo Display %u", myBike.myDisplayData.progDisplay);
 		commands_printf("Nivel Asistencia %f", (double) myBike.myVariables.assistance_program);
+		commands_printf("Nivel Asistencia Efectiva %f", (double) myBike.myVariables.effective_assistance_program);
 
-		commands_printf("Periodo cadencia = %f", (double) period_cadence);
-		commands_printf("Periodo filtrado = %f", (double) period_filtered);
+		commands_printf("Torque %f", (double) myBike.myVariables.motor_torque);
 
-		commands_printf("new_state %d", new_state);
-		commands_printf("old_state %d", old_state);
-		commands_printf("direction qem %f", (double) direction_qem);
+		commands_printf("*******************************************************************************");
+
+		commands_printf("Rev max motor %f", (double) myBike.myConf.Motor_rev_max);
+		commands_printf("Moto motor = %d", (double) myBike.myConf.modo_moto);
+
+//		commands_printf("Periodo cadencia = %f", (double) period_cadence);
+//		commands_printf("Periodo filtrado = %f", (double) period_filtered);
+//
+//		commands_printf("new_state %d", new_state);
+//		commands_printf("old_state %d", old_state);
+//		commands_printf("direction qem %f", (double) direction_qem);
 
 	} else {
 		commands_printf("\n\r Uso quat_graph 1/0");
