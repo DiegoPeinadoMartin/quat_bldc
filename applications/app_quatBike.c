@@ -116,7 +116,7 @@ static volatile uint8_t PAS2_level = 0;
 static volatile app_configuration *AppConf;
 static const volatile mc_configuration *mc_conf;
 
-static bool sendGraphs = false;
+static uint8_t sendGraphs = false;
 float samp = 0.0;
 uint16_t periodo;
 
@@ -150,6 +150,7 @@ typedef struct {
 	float assistance_program;
 	float effective_assistance_program;
 	float motor_reference_erpm;
+	float motor_reference_rpm;
 	float motor_torque;
 } t_ebike_variables;
 
@@ -471,11 +472,11 @@ void recalculaEstado(void){
 	myBike.myVariables.motor_torque = 0.75 * mc_conf->si_motor_poles * mc_interface_get_tot_current_filtered() * mc_conf->foc_motor_flux_linkage * 0.001;
 
 	if (myBike.myConf.modo_moto) {
-		myBike.myVariables.motor_reference_erpm = NR[(uint8_t) myBike.myDisplayData.progDisplay/51]; //*mc_interface_get_configuration()->si_motor_poles/2.0;
+		myBike.myVariables.motor_reference_erpm = NR[(uint8_t) myBike.myDisplayData.progDisplay/51]*mc_interface_get_configuration()->si_motor_poles/2.0;
 	} else {
-		myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myBicycloidal.pedal_rpm; //*mc_interface_get_configuration()->si_motor_poles/2.0;
+		myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myBicycloidal.pedal_rpm*mc_interface_get_configuration()->si_motor_poles/2.0;
 	}
-
+	myBike.myVariables.motor_reference_rpm = myBike.myVariables.motor_reference_erpm / (mc_conf->si_motor_poles/2.0);
 }
 
 // ************************************* MAIN APP EBIKE ***************************************************
@@ -570,7 +571,7 @@ static THD_FUNCTION(quat_thread, arg) {
 		recalculaEstado();
 		mc_interface_set_pid_speed(myBike.myVariables.motor_reference_erpm);
 
-		if (sendGraphs) sendGraphs_experiment();
+		if (sendGraphs > 0) sendGraphs_experiment();
 		timeout_reset();
 	}
 }
@@ -586,14 +587,64 @@ static void setGraphOn(int argc, const char **argv) {
 		int graphOn = 0;
 		sscanf(argv[1], "%d", &graphOn);
 		if (graphOn == 0) {
-			sendGraphs = false;
-		} else{
-			sendGraphs = true;
-			samp = 0.0;
+			sendGraphs = 0;
+		} else if (graphOn == 1){
+			sendGraphs = 1;
+			commands_init_plot("time", "RPM");
+			commands_plot_add_graph("Motor RPM");
+			commands_plot_add_graph("Reference RPM");
+			commands_plot_add_graph("Pedal Cadence RPM");
+			commands_plot_add_graph("ChainRing Cadence RPM");
+		} else if (graphOn == 2) {
+			sendGraphs = 2;
+			commands_init_plot("time", "Current/adim");
+			commands_plot_add_graph("Inst current");
+			commands_plot_add_graph("Max current");
+			commands_plot_add_graph("Avg current");
+			commands_plot_add_graph("Effect. AP");
+		} else {
+			sendGraphs = 3;
+			commands_init_plot("time", "N.m/Watts");
+			commands_plot_add_graph("Motor Torque");
+			commands_plot_add_graph("Avg Power");
+			commands_plot_add_graph("Max Power");
 		}
+		samp = 0.0;
 	} else {
-		commands_printf("\n\r Uso quat_graph 1/0");
+		commands_printf("\n\r Uso quat_graph 3/2/1/0");
   }
+}
+
+
+
+void sendGraphs_experiment(void){
+	if (sendGraphs == 1) {
+		commands_plot_set_graph(0);
+		commands_send_plot_points(samp, myBike.myBicycloidal.motor_rpm);
+		commands_plot_set_graph(1);
+		commands_send_plot_points(samp, myBike.myVariables.motor_reference_rpm);
+		commands_plot_set_graph(2);
+		commands_send_plot_points(samp, myBike.myBicycloidal.pedal_rpm);
+		commands_plot_set_graph(3);
+		commands_send_plot_points(samp, myBike.myBicycloidal.chainring_rpm);
+	} else if (sendGraphs == 2){
+		commands_plot_set_graph(0);
+		commands_send_plot_points(samp, myBike.myVariables.bike_intensity);
+		commands_plot_set_graph(1);
+		commands_send_plot_points(samp, mc_interface_stat_current_max());
+		commands_plot_set_graph(2);
+		commands_send_plot_points(samp, mc_interface_stat_current_avg());
+		commands_plot_set_graph(3);
+		commands_send_plot_points(samp, myBike.myVariables.effective_assistance_program);
+	} else {
+		commands_plot_set_graph(0);
+		commands_send_plot_points(samp, myBike.myVariables.motor_torque);
+		commands_plot_set_graph(1);
+		commands_send_plot_points(samp, mc_interface_stat_power_avg());
+		commands_plot_set_graph(2);
+		commands_send_plot_points(samp, mc_interface_stat_power_max());
+	}
+	samp++;
 }
 
 static void getProgram(int argc, const char **argv) {
@@ -637,18 +688,6 @@ static void getProgram(int argc, const char **argv) {
 //		commands_printf("direction qem %f", (double) direction_qem);
 
 	} else {
-		commands_printf("\n\r Uso quat_graph 1/0");
+		commands_printf("\n\r Uso quat_pa");
   }
-}
-
-void sendGraphs_experiment(void){
-	commands_plot_set_graph(0);
-	commands_send_plot_points(samp, myBike.myBicycloidal.motor_erpm);
-	commands_plot_set_graph(1);
-	commands_send_plot_points(samp, myBike.myVariables.motor_reference_erpm);
-	commands_plot_set_graph(2);
-	commands_send_plot_points(samp, myBike.myBicycloidal.pedal_rpm);
-	commands_plot_set_graph(3);
-	commands_send_plot_points(samp, myBike.myBicycloidal.chainring_rpm);
-	samp++;
 }
