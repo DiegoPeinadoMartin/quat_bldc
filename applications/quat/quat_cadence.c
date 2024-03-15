@@ -13,7 +13,7 @@
 #include "commands.h"
 
 #include "quat_cadence.h"
-
+#include "app_quatBike.h"
 
 #define TIME_MAX_SYSTIME   ((systime_t)-1)
 
@@ -21,6 +21,7 @@
 //  EXTERNAL VARIABLES *****************
 
 extern volatile app_configuration *AppConf;
+extern volatile t_ebike_model myBike;
 
 // *****************************************
 
@@ -49,7 +50,7 @@ uint8_t new_state;
 static uint8_t old_state = 0;
 static systime_t old_timestamp = 0;
 static float timeinterval = 0;
-static float old_timestamp_wheel = 0;
+static systime_t old_timestamp_wheel = 0;
 static float inactivity_time = 0;
 static float period_filtered = 0;
 float period_cadence = 0;
@@ -119,9 +120,9 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 
 		if (WSPEED_LEVEL && !WSPEED_LEVEL_old){
 			WSPEED_LEVEL_old = WSPEED_LEVEL;
-			period_wheel = (timestamp - old_timestamp_wheel);
+			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;;
 		}
-		period_wheel = 3;
+		period_wheel = 3500;
 
 		if (direction_qem == 2) continue;
 		if( new_state == 3 && direction_qem != 0) {
@@ -131,7 +132,7 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			}
 			period_cadence = (timestamp - old_timestamp) / (float)CH_CFG_ST_FREQUENCY * (float)AppConf->app_pas_conf.magnets;
 			old_timestamp = timestamp;
-			UTILS_LP_FAST(period_filtered, period_cadence, 0.1);
+			UTILS_LP_MOVING_AVG_APPROX(period_filtered, period_cadence, myBike.myStats.Ncad);
 			if(period_filtered < min_cadence_period) { //can't be that short, abort
 				continue;
 			}

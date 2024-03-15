@@ -10,10 +10,10 @@
 
 typedef enum {
 	STOP = 0,
-	CLOSING_GAP,
 	STABLE,
 	SLIPING,
-	RECOVERING
+	RECOVERING,
+	JUMPING
 } t_motor_state;
 
 
@@ -39,6 +39,7 @@ typedef struct {
 	float assistance_program;
 	float assistance_program_OLD;
 	float effective_assistance_program;
+	float assistance_program_Factor;
 	float motor_reference_erpm;
 	float motor_reference_rpm;
 	float motor_torque;
@@ -61,10 +62,15 @@ typedef struct {
 	float motor_reference_rpm_derivate;
 	float motor_rpm_derivate;
 	float n[6];
+	uint8_t Ncad;
+	uint8_t Nomeg;
+	float fuzzyDerivative;
+	float fuzzyOmega;
 }t_stats_estimators;
 
 typedef struct {
 	t_motor_state myMotorState; // Estado del motor
+	t_motor_state myMotorState_OLD; // Estado del motor ANTERIOR
 	t_bicycloidal_system myBicycloidal;  // Variables del bicicloidal
 	t_display_data myDisplayData; 	// Variables enviadas al display
 	t_ebike_variables myVariables;  // Variables de estado de la bicicleta/motor

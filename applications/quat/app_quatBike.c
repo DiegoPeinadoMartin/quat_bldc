@@ -60,6 +60,8 @@ static const volatile mc_configuration *mc_conf;
 static uint8_t sendGraphs = false;
 float samp = 0.0;
 uint16_t periodo;
+static float h;
+static float AP_ramp;
 
 static float AP[] = {0, 0.20, 0.40, 0.50, 0.65, 0.8};
 static float NR[] = {0, 500, 1000, 1500, 2000, 2500};
@@ -154,7 +156,7 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myConf.npolepairs = mc_interface_get_configuration()->si_motor_poles/2.0;
 	myBike.myConf.K = (1.0 - 1.0/58.0)*(1.0 - 1.0/51.0);
 	myBike.myConf.I = myBike.myConf.K / ( 1.0 - myBike.myConf.K);
-	myBike.myConf.Motor_rev_max = AppConf->app_balance_conf.kp;
+	myBike.myConf.Motor_rev_max = AppConf->app_balance_conf.hertz;
 	//myBike.myConf.modo_moto = (AppConf->app_balance_conf.ki > 0.0) ? true: false;
 	myBike.myConf.modo_moto = false;
 
@@ -165,6 +167,7 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myVariables.assistance_program = 0.0;
 	myBike.myVariables.assistance_program_OLD = 0.0;
 	myBike.myVariables.effective_assistance_program = 0.0;
+	myBike.myVariables.assistance_program_Factor = 1.0;
 	myBike.myVariables.bike_intensity = 0;
 	myBike.myVariables.bike_velocity = 0;
 	myBike.myVariables.cambioAP = false;
@@ -182,6 +185,10 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myStats.n[3] = 0;
 	myBike.myStats.n[4] = 0;
 	myBike.myStats.n[5] = 0;
+	myBike.myStats.Ncad = AppConf->app_balance_conf.kp;
+	myBike.myStats.Nomeg = AppConf->app_balance_conf.ki;
+	myBike.myStats.fuzzyDerivative = AppConf->app_balance_conf.kd;
+	myBike.myStats.fuzzyOmega = AppConf->app_balance_conf.kp2;
 }
 
 void app_init_graphs(void){
@@ -193,6 +200,8 @@ void app_init_graphs(void){
 }
 
 void actualizaVariables(void){
+
+	static systime_t last_time = 0;
 
 	// ****************** A actualizar velocidad del MOTOR  **************************************
 	myBike.myBicycloidal.motor_erpm = mc_interface_get_rpm();
@@ -217,18 +226,134 @@ void actualizaVariables(void){
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
 	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
 
-/*	myBike.myVariables.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
+	myBike.myVariables.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
+	if (myBike.myVariables.assistance_program != myBike.myVariables.assistance_program_OLD) {
+		myBike.myVariables.cambioAP = true;
+	} else {
+		myBike.myVariables.cambioAP = false;
+	}
+
+	if (myBike.myBicycloidal.chainring_rpm > 0.0) {
+		myBike.myConf.Rtransmision = myBike.myVariables.bike_velocity / myBike.myConf.WheelRadius / myBike.myBicycloidal.chainring_rpm;
+	}
+
+	/***************************************
+	 * Calculo los valores filtrados. El de la velocdad del motor con el valor recien leido. el de la velocidad de referencia, con el calculado en el ciclo anterior.
+	 * Tengo un desfase de un ciclo, pero no creo que sea importante. Si no, se complica mucho ya que para saber cómo calcular el nuevo valor de referencia
+	 * habría que hacer la transición. Habria que hacer una especie de leap-frog.
+	 */
+
+	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_rpm_filtered, myBike.myBicycloidal.motor_rpm, myBike.myStats.Nomeg);
+	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_reference_rpm_filtered, myBike.myVariables.motor_reference_rpm, myBike.myStats.Nomeg);
+	 h = (float)ST2S(chVTTimeElapsedSinceX(last_time));
+	myBike.myStats.n[0] = myBike.myStats.n[1];
+	myBike.myStats.n[1] = myBike.myStats.n[2];
+	myBike.myStats.n[2] = myBike.myStats.motor_rpm_filtered;
+	myBike.myStats.n[3] = myBike.myStats.n[4];
+	myBike.myStats.n[4] = myBike.myStats.n[5];
+	myBike.myStats.n[5] = myBike.myStats.motor_reference_rpm_filtered;
+	myBike.myStats.motor_rpm_derivate = (myBike.myStats.n[0] + 2* myBike.myStats.n[2] - 4*myBike.myStats.n[1])/(2*h);
+	myBike.myStats.motor_reference_rpm_derivate = (myBike.myStats.n[3] + 2* myBike.myStats.n[5] - 4*myBike.myStats.n[4])/(2*h);
+
+	last_time = chVTGetSystemTimeX();
+}
+
+void transicionEstado(void){
+
+	switch(myBike.myMotorState){
+	case STOP:
+		if (myBike.myBicycloidal.pedal_rpm>0) {
+			myBike.myMotorState = STABLE;
+			myBike.myMotorState_OLD = STOP;
+		}
+		break;
+	case STABLE:
+		if (myBike.myBicycloidal.pedal_rpm == 0) {
+			myBike.myMotorState = STOP;
+			myBike.myMotorState_OLD = STABLE;
+			break;
+		}
+		if ( (myBike.myStats.motor_reference_rpm_derivate > myBike.myStats.motor_rpm_derivate+myBike.myStats.fuzzyDerivative) &&
+				(myBike.myVariables.motor_reference_rpm > myBike.myBicycloidal.motor_rpm + myBike.myStats.fuzzyOmega)  ) {
+			myBike.myMotorState = SLIPING;
+			myBike.myMotorState_OLD = STABLE;
+			break;
+		}
+		if ( myBike.myVariables.cambioAP){
+			myBike.myMotorState = JUMPING;
+			myBike.myMotorState_OLD = STABLE;
+			break;
+		}
+		break;
+	case SLIPING:
+		if ( (myBike.myStats.motor_reference_rpm_derivate <= myBike.myStats.motor_rpm_derivate) ||
+						(myBike.myVariables.motor_reference_rpm <= myBike.myBicycloidal.motor_rpm)  ) {
+			myBike.myMotorState = STABLE;
+			myBike.myMotorState_OLD = SLIPING;
+			break;
+		}
+		if ( myBike.myVariables.cambioAP){
+			myBike.myMotorState = JUMPING;
+			myBike.myMotorState_OLD = SLIPING;
+			break;
+		}
+		break;
+	}
+
+}
+
+void accionVehiculo(void){
+
+	/* ******************************************************************************************************
+	 * La velocidad de referencia se hallará multiplicando el effective_assistance_program x assistance_program_Factor
+	 * El effective_assistance_program limita por que la velocidad pedida sea mayor que la máxima del motor, o porque
+	 * se llegue a la velocidad máxima.
+	 * Esto es indpendiente a que se limite por estar deslizando, o porque se esté en un transitorio desde un resbalamiento, o
+	 * también desde un cambio de programa
+	 ***********************************************************************************************************/
+
+	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, (myBike.myConf.Motor_rev_max) / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm));
+	// *** EN CUANTO SE MIDA BIEN LA VELOCDAD DE LA BIKE, DESCOMENTAR PARA TENER LÍMITADO LA VELOCDAD MÁXIMA
 	//myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, CONST_AP / (myBike.myConf.K * myBike.myConf.Rtransmision * myBike.myConf.WheelRadius * myBike.myBicycloidal.pedal_rpm));
-	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.effective_assistance_program, (myBike.myConf.Motor_rev_max) / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm));
-	//myBike.myVariables.effective_assistance_program = myBike.myVariables.assistance_program;
+
+	switch (myBike.myMotorState) {
+	case STOP:
+		myBike.myStats.motor_reference_rpm_derivate = 0;
+		myBike.myStats.motor_rpm_derivate = 0;
+		myBike.myStats.motor_reference_rpm_filtered = 0;
+		myBike.myStats.motor_rpm_filtered = 0;
+		for(int i = 0; i <= 5; i++)
+			myBike.myStats.n[i] = 0;
+		break;
+	case STABLE:
+
+		break;
+	case SLIPING:
+		myBike.myVariables.assistance_program_Factor =  myBike.myBicycloidal.motor_rpm / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm * myBike.myVariables.effective_assistance_program );
+		break;
+	case RECOVERING:
+		// Apply ramping
+
+		AP_ramp = myBike.myVariables.assistance_program_Factor;
+		float ramp_time = AppConf->app_adc_conf.ramp_time_pos;
+		if (ramp_time > 0.01) {
+			const float ramp_step = (float)ST2MS(chVTTimeElapsedSinceX(last_time)) / (ramp_time * 1000.0);
+			utils_step_towards(&AP_ramp, 1.0 , ramp_step);
+			myBike.myVariables.assistance_program_Factor = AP_ramp;
+		}
+		break;
+	case JUMPING:
+
+		break;
+	}
+	myBike.myVariables.motor_reference_rpm = myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myVariables.assistance_program_Factor *myBike.myBicycloidal.pedal_rpm;
+	myBike.myVariables.motor_reference_erpm = myBike.myVariables.motor_reference_rpm * (myBike.myConf.npolepairs);
 	myBike.myVariables.motor_torque = 0.75 * mc_conf->si_motor_poles * mc_interface_get_tot_current_filtered() * mc_conf->foc_motor_flux_linkage * 0.001;
 
-	if (myBike.myConf.modo_moto) {
-		myBike.myVariables.motor_reference_erpm = NR[(uint8_t) myBike.myDisplayData.progDisplay/51]*mc_interface_get_configuration()->si_motor_poles/2.0;
-	} else {
-		myBike.myVariables.motor_reference_erpm = myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myBicycloidal.pedal_rpm*mc_interface_get_configuration()->si_motor_poles/2.0;
-	}
-	myBike.myVariables.motor_reference_rpm = myBike.myVariables.motor_reference_erpm / (mc_conf->si_motor_poles/2.0);*/
+}
+
+void setOldValues(void) {
+	myBike.myVariables.assistance_program_OLD = myBike.myVariables.assistance_program;
 }
 
 // ************************************* MAIN APP EBIKE ***************************************************
@@ -267,6 +392,7 @@ static THD_FUNCTION(quat_thread, arg) {
 
 		mc_interface_set_pid_speed(myBike.myVariables.motor_reference_erpm);
 
+		setOldValues();
 		if (sendGraphs > 0) sendGraphs_experiment();
 		timeout_reset();
 	}
