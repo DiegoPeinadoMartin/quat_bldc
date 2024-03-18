@@ -8,10 +8,25 @@
 #ifndef APPLICATIONS_APP_QUATBIKE_H_
 #define APPLICATIONS_APP_QUATBIKE_H_
 
+typedef struct {
+	float hertz;
+	systime_t loop_time;
+	systime_t current_time;
+	systime_t last_time;
+	systime_t diff_time;
+	systime_t loop_overshoot;
+	systime_t brake_timeout;
+	uint16_t loop_time_filter;
+	float filtered_loop_overshoot;
+	float loop_overshoot_alpha;
+	float filtered_diff_time;
+	float dt;
+} LoopManagerType;
+
 typedef enum {
-	STOP = 0,
+	STOPPED = 0,
 	STABLE,
-	SLIPING,
+	SLIPPING,
 	RECOVERING,
 	JUMPING
 } t_motor_state;
