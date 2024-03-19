@@ -234,7 +234,8 @@ void actualizaVariables(void){
 
 	// ****************** C actualizar velocidad PEDAL  **************************************
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
-	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 6.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
+	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 10.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
+	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
 
 	// ****************** D actualizar velocidad BIKE **************************************
 	myBike.myVariables.bike_velocity = 2000*M_PI/ period_wheel * myBike.myConf.WheelRadius*3.6;
@@ -436,9 +437,12 @@ void accionVehiculo(void){
 		if (myBike.myMotorState != RECOVERING) {
 			ramp_time_slipping = AppConf->app_adc_conf.ramp_time_pos+0.01;
 			ramp_step_slipping = (float)ST2MS(miLoop.diff_time) / (ramp_time_slipping * 1000.0) *(1-AP_ramp);
+			commands_printf("RAMP TIME SLIPPING = %f", (double) ramp_time_slipping);
+			commands_printf("RAMP STEP SLIPPING = %f", (double) ramp_step_slipping);
 		}
 		utils_step_towards(&AP_ramp, 1.0 , ramp_step_slipping);
 		myBike.myVariables.assistance_program_Factor = AP_ramp;
+
 		break;
 	case JUMPING:
 		AP_ramp = myBike.myVariables.assistance_program_Factor;
@@ -542,6 +546,11 @@ static void setGraphOn(int argc, const char **argv) {
 			commands_init_plot("time", "Filtered Angular Derivatives");
 			commands_plot_add_graph("Reference");
 			commands_plot_add_graph("Actual");
+		} else if (graphOn == 6) {
+			sendGraphs = 6;
+			commands_init_plot("time", "ESTADOS");
+			commands_plot_add_graph("NUEVO");
+			commands_plot_add_graph("OLD");
 		}
 		samp = 0.0;
 	} else {
@@ -588,6 +597,11 @@ void sendGraphs_experiment(void){
 		commands_send_plot_points(samp, myBike.myStats.motor_reference_rpm_derivate);
 		commands_plot_set_graph(1);
 		commands_send_plot_points(samp, myBike.myStats.motor_rpm_derivate);
+	}  else if (sendGraphs == 6){
+		commands_plot_set_graph(0);
+		commands_send_plot_points(samp, myBike.myMotorState);
+		commands_plot_set_graph(1);
+		commands_send_plot_points(samp, myBike.myMotorState_OLD);
 	} else {}
 	samp++;
 }
