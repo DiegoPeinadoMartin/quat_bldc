@@ -59,6 +59,7 @@ typedef struct {
 	float motor_reference_rpm;
 	float motor_torque;
 	bool cambioAP;
+	float propDrop;
 } t_ebike_variables;
 
 typedef struct{

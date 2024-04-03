@@ -71,7 +71,23 @@ static float AP[] = {0, 0.20, 0.40, 0.50, 0.65, 0.8};
 void actualizaVariables(void);
 static void setGraphOn(int argc, const char **argv);
 static void getProgram(int argc, const char **argv);
+static void getVelocities(int argc, const char **argv);
+static void setResetSim(int argc, const char **argv);
+
 void sendGraphs_experiment(void);
+
+// ******************************* DEPURACIÓN
+
+float motorRPLeido = 0;
+unsigned int patino = 0;
+unsigned int patino_old = 0;
+float init_velocity;
+float delta_velocity;
+int j = 0;
+bool setVelocity = false;
+
+		// ******************************* DEPURACIÓN
+
 
 // ************************************* UTILITY ***************************************************
 float get_erpm_from_kph(float kmph){
@@ -96,21 +112,16 @@ void app_custom_start(void) {
 		chThdCreateStatic(quat_thread_wa, sizeof(quat_thread_wa), NORMALPRIO, quat_thread, NULL);
 		commands_printf("START QuatApp");
 	}
-	terminal_register_command_callback(
-		"quat_pa",
-		"Output PA",
-		"[] ",
-		getProgram);
-	terminal_register_command_callback(
-		"quat_graph",
-		"Output real time values to the experiments graph",
-		"[On(1)/Off(0)] ",
-		setGraphOn);
+	terminal_register_command_callback(	"quat_pa", "Output PA", "[] ", 	getProgram);
+	terminal_register_command_callback(	"quat_graph", 	"Output real time values to the experiments graph", "[On(1)/Off(0)] ", 	setGraphOn);
+	terminal_register_command_callback("qsetvel", "set values of velocity", "blabla", getVelocities);
+	terminal_register_command_callback("quat_reset", "reset", "", setResetSim);
 }
 
 void app_custom_stop(void) {
 	terminal_unregister_callback(getProgram);
 	terminal_unregister_callback(setGraphOn);
+	terminal_unregister_callback(getVelocities);
 	Quat_stop_now = true;
 	while (Quat_is_running) {
 		chThdSleepMilliseconds(1);
@@ -181,6 +192,8 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myVariables.motor_reference_erpm = 0;
 	myBike.myVariables.motor_reference_rpm = 0;
 	myBike.myVariables.motor_torque = 0;
+	myBike.myVariables.propDrop = AppConf->app_balance_conf.kd2;
+	if (myBike.myVariables.propDrop >1) myBike.myVariables.propDrop = 0;
 
 	myBike.myStats.motor_reference_rpm_filtered = 0;
 	myBike.myStats.motor_rpm_filtered = 0;
@@ -224,6 +237,7 @@ void app_init_graphs(void){
 
 void actualizaVariables(void){
 
+/* DEPURACIÓN LUEGO BORRAR COMENTARIO
 	// ****************** A actualizar velocidad del MOTOR  **************************************
 	myBike.myBicycloidal.motor_erpm = mc_interface_get_rpm();
 	myBike.myBicycloidal.motor_erpm = (fabsf( myBike.myBicycloidal.motor_erpm) > 5.0*myBike.myConf.npolepairs ) ? myBike.myBicycloidal.motor_erpm: 0.0;
@@ -236,6 +250,9 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
 	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 10.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
+*/
+
+
 
 	// ****************** D actualizar velocidad BIKE **************************************
 	myBike.myVariables.bike_velocity = 2000*M_PI/ period_wheel * myBike.myConf.WheelRadius*3.6;
@@ -254,6 +271,39 @@ void actualizaVariables(void){
 	} else {
 		myBike.myVariables.cambioAP = false;
 	}
+
+	//************************ DEPURACIÓN ******************************************************
+
+
+	if (patino){
+		if (!patino_old){
+			init_velocity = myBike.myBicycloidal.motor_rpm;
+			delta_velocity = (init_velocity-motorRPLeido)/1000;
+			j = 0;
+		}
+		myBike.myBicycloidal.motor_rpm -= delta_velocity;
+		j++;
+		if (j>=1000){
+			patino = 0;
+			myBike.myBicycloidal.motor_rpm= myBike.myVariables.motor_reference_rpm;
+		}
+	} else {
+		if (setVelocity) {
+			myBike.myBicycloidal.motor_rpm = motorRPLeido;
+			setVelocity = false;
+			if (myBike.myVariables.effective_assistance_program*myBike.myVariables.assistance_program_Factor > 0.01)
+				myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.motor_rpm / (myBike.myConf.I*myBike.myVariables.effective_assistance_program*myBike.myVariables.assistance_program_Factor );
+		} else {
+			myBike.myBicycloidal.motor_rpm= myBike.myVariables.motor_reference_rpm;
+		}
+
+	}
+	myBike.myBicycloidal.motor_erpm = myBike.myBicycloidal.motor_rpm * (myBike.myConf.npolepairs);
+	myBike.myBicycloidal.chainring_rpm = (1-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm + myBike.myConf.K*myBike.myBicycloidal.pedal_rpm;
+
+	//************************ DEPURACIÓN ******************************************************
+
+
 
 	// ******************* E actualizar el ratio efectivo de transmisión
 	if (myBike.myBicycloidal.chainring_rpm > 0.0) {
@@ -279,8 +329,8 @@ void actualizaVariables(void){
 	//  Ajusto tres puntos (dos anteriores y el actual) a una parábola. El punto actual es x3 = 0, el anterior es x2 = -h, y el primero x1 = -2.h.
 	// La derivada en x = 0, es igual a b (y = a.x² + b.x + c). El coeficiente b, tiene la expresión b  = ((y1-y3)-4.(y2-y3))/(2.h)
 
-	myBike.myStats.motor_rpm_derivate = (myBike.myStats.n[0] + 2* myBike.myStats.n[2] - 4*myBike.myStats.n[1])/(2*miLoop.dt);
-	myBike.myStats.motor_reference_rpm_derivate = (myBike.myStats.n[3] + 2* myBike.myStats.n[5] - 4*myBike.myStats.n[4])/(2*miLoop.dt);
+	myBike.myStats.motor_rpm_derivate = (myBike.myStats.n[0] + 3* myBike.myStats.n[2] - 4*myBike.myStats.n[1])/(2*miLoop.dt);
+	myBike.myStats.motor_reference_rpm_derivate = (myBike.myStats.n[3] + 3* myBike.myStats.n[5] - 4*myBike.myStats.n[4])/(2*miLoop.dt);
 }
 
 void transicionEstado(void){
@@ -305,7 +355,7 @@ void transicionEstado(void){
 		// si la derivada de la referencia es mayor que la real + un término fuzzy, y además
 		// la referencia es mayor que la real + otro término fuzzy, entonces estoy deslizando
 		if ( (myBike.myStats.motor_reference_rpm_derivate > myBike.myStats.motor_rpm_derivate+myBike.myStats.fuzzyDerivative) &&
-				(myBike.myVariables.motor_reference_rpm > myBike.myBicycloidal.motor_rpm + myBike.myStats.fuzzyOmega)  ) {
+				(myBike.myStats.motor_reference_rpm_filtered > myBike.myStats.motor_rpm_filtered + myBike.myStats.fuzzyOmega)  ) {
 			myBike.myMotorState = SLIPPING;
 			myBike.myMotorState_OLD = STABLE;
 			break;
@@ -324,9 +374,8 @@ void transicionEstado(void){
 			myBike.myMotorState_OLD = SLIPPING;
 			break;
 		}
-		// Si la pendiente de la referencia es menor que la real del motor, o la referencia es menor que la real, paso a RECOVERING
-		if ( (myBike.myStats.motor_reference_rpm_derivate <= myBike.myStats.motor_rpm_derivate) ||
-						(myBike.myVariables.motor_reference_rpm <= myBike.myBicycloidal.motor_rpm)  ) {
+		// Si la velocidad de referencia es menor que la real, paso a RECOVERING
+		if ( (myBike.myStats.motor_reference_rpm_filtered  <= myBike.myStats.motor_rpm_filtered+myBike.myStats.fuzzyOmega)  ) {
 			myBike.myMotorState = RECOVERING;
 			myBike.myMotorState_OLD = SLIPPING;
 			break;
@@ -359,7 +408,8 @@ void transicionEstado(void){
 			myBike.myMotorState_OLD = RECOVERING;
 			break;
 		}
-		if (myBike.myVariables.assistance_program_Factor > 0.98){
+		if (myBike.myVariables.assistance_program_Factor >= 1.00){
+			myBike.myVariables.assistance_program_Factor = 1.00;
 			myBike.myMotorState = STABLE;
 			myBike.myMotorState_OLD = RECOVERING;
 			break;
@@ -386,7 +436,8 @@ void transicionEstado(void){
 			myBike.myMotorState_OLD = JUMPING;
 			break;
 		}
-		if (myBike.myVariables.assistance_program_Factor > 0.98){
+		if (myBike.myVariables.assistance_program_Factor >= 1.00){
+			myBike.myVariables.assistance_program_Factor = 1.00;
 			myBike.myMotorState = STABLE;
 			myBike.myMotorState_OLD = RECOVERING;
 			break;
@@ -407,14 +458,14 @@ void accionVehiculo(void){
 	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, (myBike.myConf.Motor_rev_max) / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm));
 	// *** EN CUANTO SE MIDA BIEN LA VELOCDAD DE LA BIKE, DESCOMENTAR PARA TENER LÍMITADO LA VELOCDAD MÁXIMA
 	//myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, CONST_AP / (myBike.myConf.K * myBike.myConf.Rtransmision * myBike.myConf.WheelRadius * myBike.myBicycloidal.pedal_rpm));
-	float ramp_time_slipping;
-	float ramp_time_jumping;
-	float ramp_step_slipping;
-	float ramp_step_jumping;
+	static float ramp_time_slipping = 0.001;
+	static float ramp_time_jumping;
+	static float ramp_step_slipping = 0.001;
+	static float ramp_step_jumping = 0.001;
 
 	switch (myBike.myMotorState) {
 	case STOPPED:
-		if (myBike.myMotorState != STOPPED) {
+		if (myBike.myMotorState_OLD != STOPPED) {
 			myBike.myStats.motor_reference_rpm_derivate = 0;
 			myBike.myStats.motor_rpm_derivate = 0;
 			myBike.myStats.motor_reference_rpm_filtered = 0;
@@ -424,21 +475,19 @@ void accionVehiculo(void){
 		}
 		break;
 	case STABLE:
-		if (myBike.myMotorState != STABLE) {
+		if (myBike.myMotorState_OLD != STABLE) {
 			myBike.myVariables.assistance_program_Factor = 1.0;
 		}
 		break;
 	case SLIPPING:
-		myBike.myVariables.assistance_program_Factor =  myBike.myBicycloidal.motor_rpm / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm * myBike.myVariables.effective_assistance_program );
+		myBike.myVariables.assistance_program_Factor = myBike.myVariables.propDrop+ (1-myBike.myVariables.propDrop)*myBike.myBicycloidal.motor_rpm / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm * myBike.myVariables.effective_assistance_program );
 		break;
 	case RECOVERING:
 		// Apply ramping
 		AP_ramp = myBike.myVariables.assistance_program_Factor;
-		if (myBike.myMotorState != RECOVERING) {
+		if (myBike.myMotorState_OLD != RECOVERING) {
 			ramp_time_slipping = AppConf->app_adc_conf.ramp_time_pos+0.01;
 			ramp_step_slipping = (float)ST2MS(miLoop.diff_time) / (ramp_time_slipping * 1000.0) *(1-AP_ramp);
-			commands_printf("RAMP TIME SLIPPING = %f", (double) ramp_time_slipping);
-			commands_printf("RAMP STEP SLIPPING = %f", (double) ramp_step_slipping);
 		}
 		utils_step_towards(&AP_ramp, 1.0 , ramp_step_slipping);
 		myBike.myVariables.assistance_program_Factor = AP_ramp;
@@ -466,7 +515,9 @@ void accionVehiculo(void){
 void setOldValues(void) {
 	myBike.myVariables.assistance_program_OLD = myBike.myVariables.assistance_program;
 	myBike.myMotorState_OLD = myBike.myMotorState;
+	patino_old = patino;
 }
+
 
 // ************************************* MAIN APP EBIKE ***************************************************
 
@@ -496,10 +547,10 @@ static THD_FUNCTION(quat_thread, arg) {
 		timeout_reset();
 		accionVehiculo();
 
-
-		setOldValues();
 		if (sendGraphs > 0) sendGraphs_experiment();
 		timeout_reset();
+
+		setOldValues();
 		chThdSleep(miLoop.loop_time - roundf(miLoop.filtered_loop_overshoot));
 	}
 }
@@ -509,6 +560,65 @@ static THD_FUNCTION(quat_thread, arg) {
 
 
 //  ************************************* TERMINAL CALLBACKS
+
+static void setResetSim(int argc, const char **argv){
+	(void) argc;
+	(void) argv;
+
+	motorRPLeido = 0;
+	patino = 0;
+	setVelocity = 0;
+	myBike.myMotorState = STOPPED;
+
+	myBike.myBicycloidal.chainring_rpm = 0;
+	myBike.myBicycloidal.motor_erpm;
+	myBike.myBicycloidal.motor_rpm;
+	myBike.myBicycloidal.pedal_rpm = 0;
+
+	myBike.myDisplayData.motor_intensity = 0;
+	myBike.myDisplayData.motor_periodH = (3500 >> 8) & 0xFF;
+	myBike.myDisplayData.motor_periodL = 3500 & 0xFF;
+	myBike.myDisplayData.progDisplay = 0;
+	myBike.myDisplayData.statusBatt = 0;
+	myBike.myDisplayData.statusMot = 0;
+
+	myBike.myVariables.assistance_program = 0.0;
+	myBike.myVariables.assistance_program_OLD = 0.0;
+	myBike.myVariables.effective_assistance_program = 0.0;
+	myBike.myVariables.assistance_program_Factor = 1.0;
+	myBike.myVariables.bike_intensity = 0;
+	myBike.myVariables.bike_velocity = 0;
+	myBike.myVariables.cambioAP = false;
+	myBike.myVariables.motor_reference_erpm = 0;
+	myBike.myVariables.motor_reference_rpm = 0;
+	myBike.myVariables.motor_torque = 0;
+
+	myBike.myStats.motor_reference_rpm_filtered = 0;
+	myBike.myStats.motor_rpm_filtered = 0;
+	myBike.myStats.motor_reference_rpm_derivate = 0;
+	myBike.myStats.motor_rpm_derivate = 0;
+	myBike.myStats.n[0] = 0;
+	myBike.myStats.n[1] = 0;
+	myBike.myStats.n[2] = 0;
+	myBike.myStats.n[3] = 0;
+	myBike.myStats.n[4] = 0;
+	myBike.myStats.n[5] = 0;
+}
+
+
+static void getVelocities(int argc, const char **argv){
+	if (argc == 3){
+		sscanf(argv[1], "%f", &motorRPLeido);
+		sscanf(argv[2], "%u", &patino);
+		commands_printf("motor leido %f", (double) motorRPLeido);
+		setVelocity = true;
+		commands_printf("patino %d", patino);
+		if (patino) setVelocity = false;
+	} else {
+		commands_printf("AMOS ANDA");
+	}
+
+}
 
 static void setGraphOn(int argc, const char **argv) {
 	if (argc == 2) {
@@ -551,6 +661,9 @@ static void setGraphOn(int argc, const char **argv) {
 			commands_init_plot("time", "ESTADOS");
 			commands_plot_add_graph("NUEVO");
 			commands_plot_add_graph("OLD");
+			commands_plot_add_graph("F");
+			commands_plot_add_graph("Ref");
+			commands_plot_add_graph("Motor");
 		}
 		samp = 0.0;
 	} else {
@@ -570,11 +683,13 @@ void sendGraphs_experiment(void){
 		commands_send_plot_points(samp, myBike.myBicycloidal.chainring_rpm);
 	} else if (sendGraphs == 2){
 		commands_plot_set_graph(0);
-		commands_send_plot_points(samp, myBike.myVariables.bike_intensity);
+		commands_send_plot_points(samp, myBike.myVariables.assistance_program_Factor);
+		//commands_send_plot_points(samp, myBike.myVariables.bike_intensity);
 		commands_plot_set_graph(1);
-		commands_send_plot_points(samp, mc_interface_stat_current_max());
+
+		//commands_send_plot_points(samp, mc_interface_stat_current_max());
 		commands_plot_set_graph(2);
-		commands_send_plot_points(samp, mc_interface_stat_current_avg());
+		//commands_send_plot_points(samp, mc_interface_stat_current_avg());
 		commands_plot_set_graph(3);
 		commands_send_plot_points(samp, myBike.myVariables.effective_assistance_program);
 	} else if (sendGraphs == 3){
@@ -602,6 +717,12 @@ void sendGraphs_experiment(void){
 		commands_send_plot_points(samp, myBike.myMotorState);
 		commands_plot_set_graph(1);
 		commands_send_plot_points(samp, myBike.myMotorState_OLD);
+		commands_plot_set_graph(2);
+		commands_send_plot_points(samp, myBike.myVariables.assistance_program_Factor);
+		commands_plot_set_graph(3);
+		commands_send_plot_points(samp, myBike.myVariables.motor_reference_rpm/500.0);
+		commands_plot_set_graph(4);
+		commands_send_plot_points(samp, myBike.myBicycloidal.motor_rpm/500.0);
 	} else {}
 	samp++;
 }
@@ -646,6 +767,9 @@ static void getProgram(int argc, const char **argv) {
 
 		commands_printf("Estado %d", myBike.myMotorState);
 		commands_printf("Estado OLD %d", myBike.myMotorState_OLD);
+
+		commands_printf("motor rpm leido %f", (double) motorRPLeido);
+		commands_printf("Patino %d", patino);
 
 //		commands_printf("Periodo cadencia = %f", (double) period_cadence);
 //		commands_printf("Periodo filtrado = %f", (double) period_filtered);
