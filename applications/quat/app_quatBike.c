@@ -29,6 +29,9 @@
 #include "quat_display.h"
 
 
+//#define MIDEPURACION
+
+
 //  EXTERNAL VARIABLES *****************
 
 extern volatile float cadence_rpm;
@@ -76,6 +79,8 @@ static void setResetSim(int argc, const char **argv);
 
 void sendGraphs_experiment(void);
 
+
+#ifdef MIDEPURACION
 // ******************************* DEPURACIÓN
 
 float motorRPLeido = 0;
@@ -87,6 +92,7 @@ int j = 0;
 bool setVelocity = false;
 
 		// ******************************* DEPURACIÓN
+#endif
 
 
 // ************************************* UTILITY ***************************************************
@@ -237,7 +243,8 @@ void app_init_graphs(void){
 
 void actualizaVariables(void){
 
-/* DEPURACIÓN LUEGO BORRAR COMENTARIO
+#ifndef MIDEPURACION
+// DEPURACIÓN LUEGO BORRAR COMENTARIO
 	// ****************** A actualizar velocidad del MOTOR  **************************************
 	myBike.myBicycloidal.motor_erpm = mc_interface_get_rpm();
 	myBike.myBicycloidal.motor_erpm = (fabsf( myBike.myBicycloidal.motor_erpm) > 5.0*myBike.myConf.npolepairs ) ? myBike.myBicycloidal.motor_erpm: 0.0;
@@ -250,8 +257,8 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
 	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 10.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
-*/
 
+#endif
 
 
 	// ****************** D actualizar velocidad BIKE **************************************
@@ -272,9 +279,8 @@ void actualizaVariables(void){
 		myBike.myVariables.cambioAP = false;
 	}
 
+#ifdef MIDEPURACION
 	//************************ DEPURACIÓN ******************************************************
-
-
 	if (patino){
 		if (!patino_old){
 			init_velocity = myBike.myBicycloidal.motor_rpm;
@@ -302,7 +308,7 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.chainring_rpm = (1-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm + myBike.myConf.K*myBike.myBicycloidal.pedal_rpm;
 
 	//************************ DEPURACIÓN ******************************************************
-
+#endif
 
 
 	// ******************* E actualizar el ratio efectivo de transmisión
@@ -439,7 +445,7 @@ void transicionEstado(void){
 		if (myBike.myVariables.assistance_program_Factor >= 1.00){
 			myBike.myVariables.assistance_program_Factor = 1.00;
 			myBike.myMotorState = STABLE;
-			myBike.myMotorState_OLD = RECOVERING;
+			myBike.myMotorState_OLD = JUMPING;
 			break;
 		}
 		break;
@@ -515,7 +521,9 @@ void accionVehiculo(void){
 void setOldValues(void) {
 	myBike.myVariables.assistance_program_OLD = myBike.myVariables.assistance_program;
 	myBike.myMotorState_OLD = myBike.myMotorState;
+#ifdef MIDEPURACION
 	patino_old = patino;
+#endif
 }
 
 
@@ -565,9 +573,12 @@ static void setResetSim(int argc, const char **argv){
 	(void) argc;
 	(void) argv;
 
+#ifdef MIDEPURACION
 	motorRPLeido = 0;
 	patino = 0;
 	setVelocity = 0;
+#endif
+
 	myBike.myMotorState = STOPPED;
 
 	myBike.myBicycloidal.chainring_rpm = 0;
@@ -608,12 +619,16 @@ static void setResetSim(int argc, const char **argv){
 
 static void getVelocities(int argc, const char **argv){
 	if (argc == 3){
+#ifdef MIDEPURACION
 		sscanf(argv[1], "%f", &motorRPLeido);
 		sscanf(argv[2], "%u", &patino);
 		commands_printf("motor leido %f", (double) motorRPLeido);
 		setVelocity = true;
 		commands_printf("patino %d", patino);
 		if (patino) setVelocity = false;
+#else
+		(void) argv;
+#endif
 	} else {
 		commands_printf("AMOS ANDA");
 	}
@@ -767,10 +782,10 @@ static void getProgram(int argc, const char **argv) {
 
 		commands_printf("Estado %d", myBike.myMotorState);
 		commands_printf("Estado OLD %d", myBike.myMotorState_OLD);
-
+#ifdef MIDEPURACION
 		commands_printf("motor rpm leido %f", (double) motorRPLeido);
 		commands_printf("Patino %d", patino);
-
+#endif
 //		commands_printf("Periodo cadencia = %f", (double) period_cadence);
 //		commands_printf("Periodo filtrado = %f", (double) period_filtered);
 //
