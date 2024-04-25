@@ -128,6 +128,7 @@ void app_custom_stop(void) {
 	terminal_unregister_callback(getProgram);
 	terminal_unregister_callback(setGraphOn);
 	terminal_unregister_callback(getVelocities);
+	terminal_unregister_callback(setResetSim);
 	Quat_stop_now = true;
 	while (Quat_is_running) {
 		chThdSleepMilliseconds(1);
@@ -181,8 +182,9 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myConf.K = (1.0 - 1.0/58.0)*(1.0 - 1.0/51.0);
 	myBike.myConf.I = myBike.myConf.K / ( 1.0 - myBike.myConf.K);
 	myBike.myConf.Motor_rev_max = AppConf->app_balance_conf.ki2;
-	//myBike.myConf.modo_moto = (AppConf->app_balance_conf.ki > 0.0) ? true: false;
-	myBike.myConf.modo_moto = false;
+	myBike.myConf.modo_moto = (AppConf->app_balance_conf.ki_limit > 0.0) ? true: false;
+	//myBike.myConf.modo_moto = false;
+	myBike.myConf.minPedalVel = AppConf->app_balance_conf.kd_pt1_lowpass_frequency;
 
 	commands_printf("Wheel Radius Conf = %f",  (double) ( myBike.myConf.WheelRadius ));
 	commands_printf("Transmission Ratio Conf = %f", (double) ( myBike.myConf.Rtransmision  ));
@@ -249,23 +251,37 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.motor_erpm = mc_interface_get_rpm();
 	myBike.myBicycloidal.motor_erpm = (fabsf( myBike.myBicycloidal.motor_erpm) > 5.0*myBike.myConf.npolepairs ) ? myBike.myBicycloidal.motor_erpm: 0.0;
 	myBike.myBicycloidal.motor_rpm = myBike.myBicycloidal.motor_erpm / (myBike.myConf.npolepairs);
+#endif
+
+	// el valor myBike.myBicycloidal.motor_rpm se acaba de actualizar
+	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_rpm_filtered, myBike.myBicycloidal.motor_rpm, myBike.myStats.Nomeg);
+	// el valor myBike.myVariables.motor_reference_rpm está actualizado en el ciclo anterior
+	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_reference_rpm_filtered, myBike.myVariables.motor_reference_rpm, myBike.myStats.Nomeg);
+	myBike.myStats.n[0] = myBike.myStats.n[1];
+	myBike.myStats.n[1] = myBike.myStats.n[2];
+	myBike.myStats.n[2] = myBike.myStats.motor_rpm_filtered;
+	myBike.myStats.n[3] = myBike.myStats.n[4];
+	myBike.myStats.n[4] = myBike.myStats.n[5];
+	myBike.myStats.n[5] = myBike.myStats.motor_reference_rpm_filtered;
+	//  Ajusto tres puntos (dos anteriores y el actual) a una parábola. El punto actual es x3 = 0, el anterior es x2 = -h, y el primero x1 = -2.h.
+	// La derivada en x = 0, es igual a b (y = a.x² + b.x + c). El coeficiente b, tiene la expresión b  = ((y1-y3)-4.(y2-y3))/(2.h)
+
+	myBike.myStats.motor_rpm_derivate = (myBike.myStats.n[0] + 3* myBike.myStats.n[2] - 4*myBike.myStats.n[1])/(2*miLoop.dt);
+	myBike.myStats.motor_reference_rpm_derivate = (myBike.myStats.n[3] + 3* myBike.myStats.n[5] - 4*myBike.myStats.n[4])/(2*miLoop.dt);
 
 	// ****************** B actualizar velocidad PLATO **************************************
 	myBike.myBicycloidal.chainring_rpm = cadence_rpm;
 
 	// ****************** C actualizar velocidad PEDAL  **************************************
-	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
-	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 20.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
+	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myStats.motor_reference_rpm_filtered)/myBike.myConf.K;
+	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > myBike.myConf.minPedalVel) ? myBike.myBicycloidal.pedal_rpm: 0.0;
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
-
-#endif
-
 
 	// ****************** D actualizar velocidad BIKE **************************************
 	myBike.myVariables.bike_velocity = 2000*M_PI/ period_wheel * myBike.myConf.WheelRadius*3.6;
 
 	// ****************** D actualizar display VELOCIDAD BIKE **************************************
-	if (myBike.myBicycloidal.chainring_rpm>0.5){
+	if (myBike.myBicycloidal.chainring_rpm>AppConf->app_pas_conf.pedal_rpm_start ){
 		periodo = period_wheel;
 		periodo = (periodo > 3500) ? 3500: periodo;
 	} else periodo = 3500;
@@ -315,28 +331,6 @@ void actualizaVariables(void){
 	if (myBike.myBicycloidal.chainring_rpm > 0.0) {
 		myBike.myConf.Rtransmision = myBike.myVariables.bike_velocity / myBike.myConf.WheelRadius / myBike.myBicycloidal.chainring_rpm;
 	}
-
-	/***************************************
-	 * Calculo los valores filtrados. El de la velocdad del motor con el valor recien leido. el de la velocidad de referencia, con el calculado en el ciclo anterior.
-	 * Tengo un desfase de un ciclo, pero no creo que sea importante. Si no, se complica mucho ya que para saber cómo calcular el nuevo valor de referencia
-	 * habría que hacer la transición. Habria que hacer una especie de leap-frog.
-	 */
-
-	// el valor myBike.myBicycloidal.motor_rpm se acaba de actualizar
-	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_rpm_filtered, myBike.myBicycloidal.motor_rpm, myBike.myStats.Nomeg);
-	// el valor myBike.myVariables.motor_reference_rpm está actualizado en el ciclo anterior
-	UTILS_LP_MOVING_AVG_APPROX(myBike.myStats.motor_reference_rpm_filtered, myBike.myVariables.motor_reference_rpm, myBike.myStats.Nomeg);
-	myBike.myStats.n[0] = myBike.myStats.n[1];
-	myBike.myStats.n[1] = myBike.myStats.n[2];
-	myBike.myStats.n[2] = myBike.myStats.motor_rpm_filtered;
-	myBike.myStats.n[3] = myBike.myStats.n[4];
-	myBike.myStats.n[4] = myBike.myStats.n[5];
-	myBike.myStats.n[5] = myBike.myStats.motor_reference_rpm_filtered;
-	//  Ajusto tres puntos (dos anteriores y el actual) a una parábola. El punto actual es x3 = 0, el anterior es x2 = -h, y el primero x1 = -2.h.
-	// La derivada en x = 0, es igual a b (y = a.x² + b.x + c). El coeficiente b, tiene la expresión b  = ((y1-y3)-4.(y2-y3))/(2.h)
-
-	myBike.myStats.motor_rpm_derivate = (myBike.myStats.n[0] + 3* myBike.myStats.n[2] - 4*myBike.myStats.n[1])/(2*miLoop.dt);
-	myBike.myStats.motor_reference_rpm_derivate = (myBike.myStats.n[3] + 3* myBike.myStats.n[5] - 4*myBike.myStats.n[4])/(2*miLoop.dt);
 }
 
 void transicionEstado(void){
