@@ -107,6 +107,12 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			sleep_time = 1;
 		}
 		chThdSleep(sleep_time);
+
+		if (quat_cadence_thread_stop_now) {
+			quat_cadence_thread_is_running = false;
+			return;
+		}
+
 		PAS1_level = palReadPad(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN);
 		PAS2_level = palReadPad(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN);
 		WSPEED_LEVEL = palReadPad(HW_QUAD_WHEEL_SENSOR_PORT, HW_QUAD_WHEEL_SENSOR_PIN);
@@ -119,10 +125,10 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 
 
 		if (WSPEED_LEVEL && !WSPEED_LEVEL_old){
-			WSPEED_LEVEL_old = WSPEED_LEVEL;
-			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;;
+			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;
+			old_timestamp_wheel = timestamp;
 		}
-		period_wheel = 3500;
+		//period_wheel = 3500;
 
 		if (direction_qem == 2) continue;
 		if( new_state == 3 && direction_qem != 0) {
@@ -146,5 +152,6 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 				cadence_rpm = 0.0;
 			}
 		}
+		WSPEED_LEVEL_old = WSPEED_LEVEL;
 	}
 }

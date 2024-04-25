@@ -66,7 +66,7 @@ float samp = 0.0;
 uint16_t periodo;
 static float AP_ramp;
 
-static float AP[] = {0, 0.20, 0.40, 0.50, 0.65, 0.8};
+static float AP[] = {0.00, 0.20, 0.40, 0.60, 0.80, 1.00};
 //static float NR[] = {0, 500, 1000, 1500, 2000, 2500};
 
 
@@ -255,7 +255,7 @@ void actualizaVariables(void){
 
 	// ****************** C actualizar velocidad PEDAL  **************************************
 	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
-	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 10.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
+	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > 20.0) ? myBike.myBicycloidal.pedal_rpm: 0.0;
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
 
 #endif

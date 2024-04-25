@@ -218,8 +218,12 @@ static THD_FUNCTION(quat_display_process_thread, arg) {
   chRegSetThreadName("QUAT SerialDisp");
   chThdSleepMilliseconds(500);
   for(;;) {
-    chThdSleepMilliseconds(100);
-    quat_display_serial_check_rx();
+	  chThdSleepMilliseconds(100);
+	  if (quat_display_thread_stop_now) {
+		  quat_display_thread_is_running = false;
+		  return;
+	  }
+	  quat_display_serial_check_rx();
 //    timeout_reset();
   }
 }
