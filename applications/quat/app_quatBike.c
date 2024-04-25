@@ -185,6 +185,7 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myConf.modo_moto = (AppConf->app_balance_conf.ki_limit > 0.0) ? true: false;
 	//myBike.myConf.modo_moto = false;
 	myBike.myConf.minPedalVel = AppConf->app_balance_conf.kd_pt1_lowpass_frequency;
+	myBike.myConf.w2filtrado = (AppConf->app_balance_conf.kd_pt1_highpass_frequency > 0.0) ? true: false;
 
 	commands_printf("Wheel Radius Conf = %f",  (double) ( myBike.myConf.WheelRadius ));
 	commands_printf("Transmission Ratio Conf = %f", (double) ( myBike.myConf.Rtransmision  ));
@@ -273,7 +274,8 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.chainring_rpm = cadence_rpm;
 
 	// ****************** C actualizar velocidad PEDAL  **************************************
-	myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myStats.motor_reference_rpm_filtered)/myBike.myConf.K;
+	if (myBike.myConf.w2filtrado ) myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myStats.motor_reference_rpm_filtered)/myBike.myConf.K;
+	else myBike.myBicycloidal.pedal_rpm = (myBike.myBicycloidal.chainring_rpm - (1.0-myBike.myConf.K)*myBike.myBicycloidal.motor_rpm)/myBike.myConf.K;
 	myBike.myBicycloidal.pedal_rpm = (fabsf( myBike.myBicycloidal.pedal_rpm) > myBike.myConf.minPedalVel) ? myBike.myBicycloidal.pedal_rpm: 0.0;
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
 

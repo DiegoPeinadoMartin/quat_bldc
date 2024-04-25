@@ -71,6 +71,7 @@ typedef struct{
 	float Motor_rev_max;
 	bool  modo_moto;
 	uint8_t minPedalVel;
+	bool w2filtrado;
 } t_ebike_conf;
 
 typedef struct {
