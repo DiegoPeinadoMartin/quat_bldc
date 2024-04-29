@@ -34,7 +34,7 @@ extern volatile t_ebike_model myBike;
 
 
 static THD_FUNCTION(quat_cadence_process_thread, arg);
-static THD_WORKING_AREA(quat_cadence_process_thread_wa, 2048);
+static THD_WORKING_AREA(quat_cadence_process_thread_wa, 512);
 
 static volatile bool quat_cadence_thread_is_running = false;
 static volatile bool quat_cadence_thread_stop_now = true;

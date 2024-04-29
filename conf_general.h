@@ -38,7 +38,7 @@ HW_SOURCE = "hwconf/trampa/60_75/hw_60_75_core.c"
 
 #ifndef HW_HEADER
 //#error "No hardware header file set"
-HW_HEADER = "hwconf/trampa/60_75/hw_60_75_mk2.h"
+//HW_HEADER = "hwconf/trampa/60_75/hw_60_75_mk2.h"
 #endif
 
 #ifdef USER_MC_CONF

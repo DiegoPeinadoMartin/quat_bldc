@@ -48,7 +48,7 @@ volatile t_ebike_model myBike;
 
 // Threads POINTERS
 static THD_FUNCTION(quat_thread, arg);
-static THD_WORKING_AREA(quat_thread_wa, 1024);
+static THD_WORKING_AREA(quat_thread_wa, 512);
 
 // START AND STOP VARIABLES
 static volatile bool Quat_stop_now = true;
