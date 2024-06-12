@@ -31,101 +31,108 @@
 #include "commands.h"
 #include "timeout.h"
 
+#include "buffer.h"
+
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
 
+
+#define NBYTESFRAME	17
+#define MAXOLDMSG 		4
+
+typedef struct {
+	uint8_t send_buffer[NBYTESFRAME*(MAXOLDMSG+1)];
+	int32_t ind;
+	uint8_t npendientes;
+}quat_can_frame_data_t;
+
+static quat_can_frame_data_t can_msgs;
+
 // Threads
 static THD_FUNCTION(quat_send_data_thread, arg);
-static THD_WORKING_AREA(quat_send_data_thread_wa, 1024);
-
-// Private functions
-static void pwm_callback(void);
-static void terminal_test(int argc, const char **argv);
+static THD_WORKING_AREA(quat_send_data_thread_wa, 512);
 
 // Private variables
 static volatile bool quat_send_data_stop_now = true;
 static volatile bool quat_send_data_is_running = false;
 
+extern volatile app_configuration *AppConf;
+
 // Called when the custom application is started. Start our
 // threads here and set up callbacks.
 void quat_send_data_start(void) {
-	mc_interface_set_pwm_callback(pwm_callback);
-
 	quat_send_data_stop_now = false;
 	chThdCreateStatic(quat_send_data_thread_wa, sizeof(quat_send_data_thread_wa),
 			NORMALPRIO, quat_send_data_thread, NULL);
-
-	// Terminal commands for the VESC Tool terminal can be registered.
-//	terminal_register_command_callback(
-//			"custom_cmd",
-//			"Print the number d",
-//			"[d]",
-//			terminal_test);
 }
 
 // Called when the custom application is stopped. Stop our threads
 // and release callbacks.
 void quat_send_data_stop(void) {
-	mc_interface_set_pwm_callback(0);
-	terminal_unregister_callback(terminal_test);
-
-	stop_now = true;
-	while (is_running) {
+	quat_send_data_stop_now = true;
+	while (quat_send_data_is_running) {
 		chThdSleepMilliseconds(1);
 	}
 }
 
-void quat_send_data_configure(app_configuration *conf) {
-	(void)conf;
+void quat_send_data_configure(void) {
+	can_msgs.ind = 0;
+	can_msgs.npendientes = 0;
 }
 
-static THD_FUNCTION(my_thread, arg) {
-	(void)arg;
+void quat_set_can_msg(uint8_t est1, uint8_t est2, float w1, float w2, float w3, float w2ref1, float w2ref2, float current, float voltage, float factor, bool pendiente){
+	can_msgs.ind = 0;
+	uint8_t origen = 0;
+	uint8_t *mibuffer;
+	uint8_t estado = (est2 << 4) | (est1 & 0xF);
 
-	int32_t ind = 0;
-	uint8_t send_buffer[70];
+	if (pendiente){
+		if (can_msgs.npendientes < MAXOLDMSG)
+			can_msgs.npendientes++;
+		origen = can_msgs.npendientes*NBYTESFRAME;
+	}
+	can_msgs.send_buffer[origen] = estado;
+	can_msgs.ind++;
+	mibuffer = &(can_msgs.send_buffer[origen]);
+	buffer_append_float16(mibuffer, w1, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, w2, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, w3, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, w2ref1, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, w2ref2, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, current, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, voltage, 1e2, &can_msgs.ind);
+	buffer_append_float16(mibuffer, factor, 1e2, &can_msgs.ind);
+}
 
-	chRegSetThreadName("QUAT Data Send");
-
-	is_running = true;
-
-
-	for(;;) {
-		// Check if it is time to stop.
-		if (stop_now) {
-			is_running = false;
-			return;
-		}
-		buffer_append_float16(send_buffer, pwr, 1e2, &ind);
-		buffer_append_float16(send_buffer, (float) TR_button, 1e2, &ind);
-		buffer_append_float16(send_buffer, 0.0, 1e2, &ind);
-		buffer_append_float16(send_buffer, 0.0, 1e2, &ind);
-		comm_can_transmit_eid_replace(conf->controller_id | ((uint32_t) CAN_PACKET_IO_BOARD_ADC_1_TO_4 << 8), send_buffer, ind, true);
-		timeout_reset(); // Reset timeout if everything is OK.
-
-		// Run your logic here. A lot of functionality is available in mc_interface.h.
-
-		chThdSleepMilliseconds(10);
+void quat_send_can_msg(void){
+	uint8_t *mibuffer;
+	if (can_msgs.npendientes){
+		mibuffer = &can_msgs.send_buffer[can_msgs.npendientes*NBYTESFRAME];
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer, 5);
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer+5, 6);
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer+11, 6);
+		can_msgs.npendientes--;
+	} else {
+		mibuffer = &can_msgs.send_buffer[0];
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer, 5);
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer+5, 6);
+		comm_can_transmit_sid(AppConf->controller_id, mibuffer+11, 6);
 	}
 }
 
-static void pwm_callback(void) {
-	// Called for every control iteration in interrupt context.
-}
-
-// Callback function for the terminal command with arguments.
-static void terminal_test(int argc, const char **argv) {
-	if (argc == 2) {
-		int d = -1;
-		sscanf(argv[1], "%d", &d);
-
-		commands_printf("You have entered %d", d);
-
-		// For example, read the ADC inputs on the COMM header.
-		commands_printf("ADC1: %.2f V ADC2: %.2f V",
-				(double)ADC_VOLTS(ADC_IND_EXT), (double)ADC_VOLTS(ADC_IND_EXT2));
-	} else {
-		commands_printf("This command requires one argument.\n");
+static THD_FUNCTION(quat_send_data_thread, arg) {
+	(void)arg;
+	chRegSetThreadName("QUAT Data Send");
+	quat_send_data_is_running = true;
+	for(;;) {
+		// Check if it is time to stop.
+		if (quat_send_data_stop_now) {
+			quat_send_data_is_running = false;
+			return;
+		}
+		quat_send_can_msg();
+		timeout_reset(); // Reset timeout if everything is OK.
+		chThdSleepMilliseconds(50);
 	}
 }

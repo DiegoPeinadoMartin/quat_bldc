@@ -8,6 +8,7 @@ APPSRC =	applications/app.c \
 			applications/app_pas.c \
 			applications/app_custom.c \
 			applications/quat/quat_cadence.c \
-			applications/quat/quat_display.c
+			applications/quat/quat_display.c \
+			applications/quat/quat_dataSend.c
 
 APPINC = applications

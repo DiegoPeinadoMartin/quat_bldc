@@ -52,16 +52,19 @@ typedef struct {
 typedef struct {
 	float bike_velocity;
 	float wheel_rpm;
+	float wheel_rads;
 	float bike_intensity;
 	float assistance_program;
 	float assistance_program_OLD;
 	float effective_assistance_program;
 	float assistance_program_Factor;
 	float motor_reference_erpm;
-	float motor_reference_rpm;
+	float motor_reference_rpm1;
+	float motor_reference_rpm2;
 	float motor_torque;
 	bool cambioAP;
 	float propDrop;
+	float chainring_objective_rpm;
 } t_ebike_variables;
 
 typedef struct{
@@ -74,6 +77,7 @@ typedef struct{
 	bool  modo_moto;
 	uint8_t minPedalVel;
 	bool w2filtrado;
+	bool sendData;
 } t_ebike_conf;
 
 typedef struct {

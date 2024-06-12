@@ -132,6 +132,7 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 
 		if (direction_qem == 2) continue;
 		if( new_state == 3 && direction_qem != 0) {
+			inactivity_time = 0.0;
 			timeinterval = timestamp - old_timestamp;
 			if (timestamp < old_timestamp) {
 				timeinterval += TIME_MAX_SYSTIME;
@@ -144,7 +145,6 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			}
 			cadence_rpm = 60.0 / period_filtered;
 			cadence_rpm *= (direction_conf * (float)direction_qem);
-			inactivity_time = 0.0;
 		}	else {
 			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
 			// if no pedal activity, set RPM as zero
