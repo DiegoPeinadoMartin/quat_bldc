@@ -57,6 +57,7 @@ static volatile bool Quat_is_running = false;
 // ************************************ MAIN APP VARIABLES
 
 #define CONST_AP		79.5774715459
+#define CONST_PI_OVER_30	0.104719755
 
 static const volatile mc_configuration *mc_conf;
 static volatile LoopManagerType miLoop;
@@ -66,7 +67,7 @@ float samp = 0.0;
 uint16_t periodo;
 static float AP_ramp;
 
-static float AP[] = {0.00, 0.20, 0.40, 0.60, 0.80, 1.00};
+static float AP[] = {0.00, 0.40, 0.60, 0.80, 1.00, 1.50};
 //static float NR[] = {0, 500, 1000, 1500, 2000, 2500};
 
 
@@ -280,7 +281,9 @@ void actualizaVariables(void){
 	myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
 
 	// ****************** D actualizar velocidad BIKE **************************************
-	myBike.myVariables.bike_velocity = 2000*M_PI/ period_wheel * myBike.myConf.WheelRadius*3.6;
+	myBike.myVariables.wheel_rpm = 2000*M_PI/ period_wheel;
+	myBike.myVariables.bike_velocity = myBike.myVariables.wheel_rpm* myBike.myConf.WheelRadius;
+
 
 	// ****************** D actualizar display VELOCIDAD BIKE **************************************
 	if (myBike.myBicycloidal.chainring_rpm>AppConf->app_pas_conf.pedal_rpm_start ){
@@ -330,8 +333,9 @@ void actualizaVariables(void){
 
 
 	// ******************* E actualizar el ratio efectivo de transmisión
+	// Rtransmision es la relación entre la velocidad de la rueda entre la velocidad del plato
 	if (myBike.myBicycloidal.chainring_rpm > 0.0) {
-		myBike.myConf.Rtransmision = myBike.myVariables.bike_velocity / myBike.myConf.WheelRadius / myBike.myBicycloidal.chainring_rpm;
+		myBike.myConf.Rtransmision = myBike.myVariables.wheel_rpm /  myBike.myBicycloidal.chainring_rpm;
 	}
 }
 
@@ -343,10 +347,29 @@ void transicionEstado(void){
 	case STOPPED:
 		// si estaba parado y tengo pedaleo, paso a STABLE
 		if (myBike.myBicycloidal.pedal_rpm>0) {
-			myBike.myMotorState = STABLE;
-			myBike.myMotorState_OLD = STOPPED;
+			if (myBike.myVariables.wheel_rpm > 0){
+				myBike.myMotorState = QUICKACCEL;
+				myBike.myMotorState_OLD = STOPPED;
+			}else {
+				myBike.myMotorState = STABLE;
+				myBike.myMotorState_OLD = STOPPED;
+			}
 		}
 		break;
+	case QUICKACCEL:
+		// SI ESTABA EN QUICKACCEL y me paro, paso a STOP
+		if (myBike.myBicycloidal.pedal_rpm == 0) {
+					myBike.myMotorState = STOPPED;
+					myBike.myMotorState_OLD = QUICKACCEL;
+					break;
+		}
+		// si recibo un cambio de programa, paso a JUMPING
+		if ( myBike.myVariables.cambioAP){
+			myBike.myMotorState = JUMPING;
+			myBike.myMotorState_OLD = QUICKACCEL;
+			break;
+		}
+		// tengo que ver cuándo saldo de este estado porque w3 ya esté bien, con la w2 del motor
 	case STABLE:
 		// si estaba en STABLE, y me paro, paso a STOP
 		if (myBike.myBicycloidal.pedal_rpm == 0) {
@@ -475,6 +498,9 @@ void accionVehiculo(void){
 			for(int i = 0; i <= 5; i++)
 				myBike.myStats.n[i] = 0;
 		}
+		break;
+	case QUICKACCEL:
+		// tengo que poner modo moto con w2ref igual al que hace que w3 sea la calculada según ww y la Rtransmisión guardada
 		break;
 	case STABLE:
 		if (myBike.myMotorState_OLD != STABLE) {

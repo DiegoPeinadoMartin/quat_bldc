@@ -25,6 +25,7 @@ typedef struct {
 
 typedef enum {
 	STOPPED = 0,
+	QUICKACCEL,
 	STABLE,
 	SLIPPING,
 	RECOVERING,
@@ -50,6 +51,7 @@ typedef struct {
 
 typedef struct {
 	float bike_velocity;
+	float wheel_rpm;
 	float bike_intensity;
 	float assistance_program;
 	float assistance_program_OLD;
