@@ -32,6 +32,7 @@ extern volatile t_ebike_model myBike;
 #define HW_QUAD_WHEEL_SENSOR_PORT  					HW_ICU_GPIO
 #define HW_QUAD_WHEEL_SENSOR_PIN  						HW_ICU_PIN
 
+#define MAX_WHEEL_PERIOD													3
 
 static THD_FUNCTION(quat_cadence_process_thread, arg);
 static THD_WORKING_AREA(quat_cadence_process_thread_wa, 512);
@@ -43,6 +44,7 @@ static volatile float max_pulse_period = 0.0;
 static volatile float min_cadence_period = 0.0;
 static volatile float direction_conf = 0.0;
 volatile float cadence_rpm = 0;
+volatile float wheel_rpm = 0;
 
 const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
 int8_t direction_qem;
@@ -54,7 +56,7 @@ static systime_t old_timestamp_wheel = 0;
 static float inactivity_time = 0;
 static float period_filtered = 0;
 float period_cadence = 0;
-volatile float period_wheel = 0;
+volatile float period_wheel = 1e20;
 //static int32_t correct_direction_counter = 0;
 
  volatile uint8_t PAS1_level = 0;
@@ -128,7 +130,11 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;
 			old_timestamp_wheel = timestamp;
 		}
-		//period_wheel = 3500;
+		if (period_wheel > MAX_WHEEL_PERIOD) {
+			wheel_rpm = 0;
+		} else {
+			wheel_rpm = 60.0/period_wheel;
+		}
 
 		if (direction_qem == 2) continue;
 		if( new_state == 3 && direction_qem != 0) {

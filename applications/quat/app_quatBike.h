@@ -52,11 +52,11 @@ typedef struct {
 typedef struct {
 	float bike_velocity;
 	float wheel_rpm;
-	float wheel_rads;
 	float bike_intensity;
 	float assistance_program;
 	float assistance_program_OLD;
 	float effective_assistance_program;
+	float moto_program_Factor;
 	float assistance_program_Factor;
 	float motor_reference_erpm;
 	float motor_reference_rpm1;

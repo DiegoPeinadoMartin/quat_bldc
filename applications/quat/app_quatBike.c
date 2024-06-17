@@ -36,7 +36,7 @@
 //  EXTERNAL VARIABLES *****************
 
 extern volatile float cadence_rpm;
-extern volatile float period_wheel;
+extern volatile float wheel_rpm;
 extern volatile uint8_t PAS1_level;
 extern volatile uint8_t PAS2_level;
 
@@ -139,7 +139,7 @@ void app_custom_stop(void) {
 	commands_printf("STOP QuatApp");
 	quat_display_serial_stop();
 	quat_cadence_stop();
-	quat_send_data_stop();
+	if (myBike.myConf.sendData) quat_send_data_stop();
 }
 
 void app_custom_configure(app_configuration *conf) {
@@ -296,13 +296,12 @@ void actualizaVariables(void){
 	//myBike.myBicycloidal.pedal_rpm = myBike.myBicycloidal.pedal_rpm < 0.0 ?  0.0 :myBike.myBicycloidal.pedal_rpm;
 
 	// ****************** D actualizar velocidad BIKE **************************************
-	myBike.myVariables.wheel_rads = 2000*M_PI/ period_wheel;
-	myBike.myVariables.wheel_rpm = myBike.myVariables.wheel_rads / CONST_PI_OVER_30;
-	myBike.myVariables.bike_velocity = myBike.myVariables.wheel_rads* myBike.myConf.WheelRadius;
+	myBike.myVariables.wheel_rpm = wheel_rpm;
+	myBike.myVariables.bike_velocity = wheel_rpm * CONST_PI_OVER_30* myBike.myConf.WheelRadius;
 
 	// ****************** D actualizar display VELOCIDAD BIKE **************************************
 	if (myBike.myBicycloidal.chainring_rpm>AppConf->app_pas_conf.pedal_rpm_start ){
-		periodo = period_wheel;
+		periodo = wheel_rpm/60.0;
 		periodo = (periodo > 3500) ? 3500: periodo;
 	} else periodo = 3500;
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
@@ -311,6 +310,11 @@ void actualizaVariables(void){
 	myBike.myVariables.assistance_program = AP[(uint8_t) myBike.myDisplayData.progDisplay/51];
 	if (myBike.myVariables.assistance_program != myBike.myVariables.assistance_program_OLD) {
 		myBike.myVariables.cambioAP = true;
+		if(myBike.myVariables.assistance_program == 0){
+			myBike.myVariables.moto_program_Factor = 0;
+		} else {
+			myBike.myVariables.moto_program_Factor = 1;
+		}
 	} else {
 		myBike.myVariables.cambioAP = false;
 	}
@@ -611,11 +615,10 @@ void accionVehiculo(void){
 			myBike.myVariables.motor_reference_erpm = myBike.myVariables.motor_reference_rpm1 * (myBike.myConf.npolepairs);
 			break;
 		case QUICKACCEL:
-			myBike.myVariables.motor_reference_rpm2 = myBike.myConf.I*(myBike.myVariables.chainring_objective_rpm/myBike.myConf.K - myBike.myBicycloidal.pedal_rpm);
+			myBike.myVariables.motor_reference_rpm2 = myBike.myConf.I*(myBike.myVariables.chainring_objective_rpm/myBike.myConf.K - myBike.myBicycloidal.pedal_rpm)*myBike.myVariables.moto_program_Factor;
 			myBike.myVariables.motor_reference_erpm = myBike.myVariables.motor_reference_rpm2 * (myBike.myConf.npolepairs);
 			break;
 	}
-
 	myBike.myVariables.motor_torque = 0.75 * mc_conf->si_motor_poles * mc_interface_get_tot_current_filtered() * mc_conf->foc_motor_flux_linkage * 0.001;
 	mc_interface_set_pid_speed(myBike.myVariables.motor_reference_erpm);
 }
@@ -722,6 +725,7 @@ static void setResetSim(int argc, const char **argv){
 	myBike.myVariables.assistance_program_OLD = 0.0;
 	myBike.myVariables.effective_assistance_program = 0.0;
 	myBike.myVariables.assistance_program_Factor = 1.0;
+	myBike.myVariables.moto_program_Factor = 0;
 	myBike.myVariables.bike_intensity = 0;
 	myBike.myVariables.bike_velocity = 0;
 	myBike.myVariables.cambioAP = false;
@@ -887,8 +891,12 @@ static void getProgram(int argc, const char **argv) {
 		commands_printf("W1 = %f RPM", (double) myBike.myBicycloidal.pedal_rpm);
 		commands_printf("W2 = %f RPM", (double) myBike.myBicycloidal.motor_rpm);
 		commands_printf("W3 = %f RPM", (double) myBike.myBicycloidal.chainring_rpm);
+		commands_printf("Ww = %f RPM", (double) myBike.myVariables.wheel_rpm);
+		commands_printf("W3obj = %f RPM", (double) myBike.myVariables.chainring_objective_rpm);
 
 		commands_printf("W2ref = %f ERPM", (double) myBike.myVariables.motor_reference_erpm);
+		commands_printf("W2ref1 = %f RPM", (double) myBike.myVariables.motor_reference_rpm1);
+		commands_printf("W2ref2 = %f RPM", (double) myBike.myVariables.motor_reference_rpm2);
 		commands_printf("*******************************************************************************");
 		commands_printf("Modo Display %u", myBike.myDisplayData.progDisplay);
 		commands_printf("Nivel Asistencia %f", (double) myBike.myVariables.assistance_program);
