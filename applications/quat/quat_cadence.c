@@ -145,13 +145,13 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			}
 			period_cadence = (timestamp - old_timestamp) / (float)CH_CFG_ST_FREQUENCY * (float)AppConf->app_pas_conf.magnets;
 			old_timestamp = timestamp;
-			UTILS_LP_MOVING_AVG_APPROX(period_filtered, period_cadence, myBike.myStats.Ncad);
+			UTILS_LP_MOVING_AVG_APPROX(period_filtered, period_cadence, 5);
 			if(period_filtered < min_cadence_period) { //can't be that short, abort
 				continue;
 			}
 			cadence_rpm = 60.0 / period_filtered;
 			cadence_rpm *= (direction_conf * (float)direction_qem);
-			if (cadence_rpm < 0) cadence_rpm = 0;
+			//if (cadence_rpm < 0) cadence_rpm = 0;
 		}	else {
 			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
 			// if no pedal activity, set RPM as zero

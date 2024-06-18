@@ -25,7 +25,6 @@ typedef struct {
 
 typedef enum {
 	STOPPED = 0,
-	QUICKACCEL,
 	STABLE,
 	SLIPPING,
 	RECOVERING,
@@ -38,6 +37,7 @@ typedef struct {
 	float motor_rpm;
 	float motor_erpm;
 	float chainring_rpm;
+	float chainring_filtered_rpm;
 } t_bicycloidal_system;
 
 typedef struct {
@@ -59,12 +59,10 @@ typedef struct {
 	float moto_program_Factor;
 	float assistance_program_Factor;
 	float motor_reference_erpm;
-	float motor_reference_rpm1;
-	float motor_reference_rpm2;
+	float motor_reference_rpm;
 	float motor_torque;
 	bool cambioAP;
 	float propDrop;
-	float chainring_objective_rpm;
 } t_ebike_variables;
 
 typedef struct{
