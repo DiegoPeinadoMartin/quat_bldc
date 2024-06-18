@@ -37,8 +37,10 @@
 
 extern volatile float cadence_rpm;
 extern volatile float wheel_rpm;
+extern volatile float period_wheel;
 extern volatile uint8_t PAS1_level;
 extern volatile uint8_t PAS2_level;
+extern volatile uint8_t WSPEED_LEVEL;
 
 // ***************************************
 // SHARED VARIABLES ********************
@@ -70,7 +72,7 @@ uint16_t periodo;
 static float AP_ramp;
 
 static float AP[] = {0.00, 0.40, 0.60, 0.80, 1.00, 1.50};
-static float NR[] = {0, 100, 300, 500, 750, 1000};
+static float NR[] = {0, 400, 800, 1200, 1600, 2000};
 
 
 // static void getLoopTimes(int argc, const char **argv);
@@ -297,13 +299,12 @@ void actualizaVariables(void){
 
 	// ****************** D actualizar velocidad BIKE **************************************
 	myBike.myVariables.wheel_rpm = wheel_rpm;
-	myBike.myVariables.bike_velocity = wheel_rpm * CONST_PI_OVER_30* myBike.myConf.WheelRadius;
+	myBike.myVariables.bike_velocity = wheel_rpm * CONST_PI_OVER_30* myBike.myConf.WheelRadius*3.6;
 
 	// ****************** D actualizar display VELOCIDAD BIKE **************************************
-	if (myBike.myBicycloidal.chainring_rpm>AppConf->app_pas_conf.pedal_rpm_start ){
-		periodo = wheel_rpm/60.0;
-		periodo = (periodo > 3500) ? 3500: periodo;
-	} else periodo = 3500;
+	if (wheel_rpm >0) 	periodo = ((60.0/wheel_rpm)*1000.0);
+	else periodo = 3500;
+	//periodo = (periodo > 3500) ? 3500: periodo;
 	myBike.myDisplayData.motor_periodH = (periodo >> 8) & 0xFF;
 	myBike.myDisplayData.motor_periodL = periodo & 0xFF;
 
@@ -550,7 +551,7 @@ void accionVehiculo(void){
 
 	myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, (myBike.myConf.Motor_rev_max) / ( myBike.myConf.I * myBike.myBicycloidal.pedal_rpm));
 	// *** EN CUANTO SE MIDA BIEN LA VELOCDAD DE LA BIKE, DESCOMENTAR PARA TENER LÍMITADO LA VELOCDAD MÁXIMA
-	//myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, CONST_AP / (myBike.myConf.K * myBike.myConf.Rtransmision * myBike.myConf.WheelRadius * myBike.myBicycloidal.pedal_rpm));
+	//myBike.myVariables.effective_assistance_program = fminf(myBike.myVariables.assistance_program, CONST_AP / );
 	static float ramp_time_slipping = 0.001;
 	static float ramp_time_jumping;
 	static float ramp_step_slipping = 0.001;
@@ -842,6 +843,8 @@ void sendGraphs_experiment(void){
 		commands_send_plot_points(samp, PAS1_level);
 		commands_plot_set_graph(1);
 		commands_send_plot_points(samp, PAS2_level);
+		//commands_plot_set_graph(2);
+		//commands_send_plot_points(samp,  WSPEED_LEVEL);
 //		commands_send_plot_points(samp, myBike.myVariables.motor_torque);
 //		commands_plot_set_graph(1);
 //		commands_send_plot_points(samp, mc_interface_stat_power_avg());
@@ -881,6 +884,7 @@ static void getProgram(int argc, const char **argv) {
 		commands_printf("ChainRing = %f", (double) cadence_rpm);
 		commands_printf("Vel = %f", (double) myBike.myVariables.bike_velocity);
 		commands_printf("periodo = %u", periodo);
+		commands_printf("Period_wheel = %f S", (double) period_wheel);
 		commands_printf("*******************************************************************************");
 		commands_printf("Wheel Radius = %f", (double) myBike.myConf.WheelRadius);
 		commands_printf("Transmission Ratio = %f", (double) myBike.myConf.Rtransmision);

@@ -61,7 +61,7 @@ volatile float period_wheel = 1e20;
 
  volatile uint8_t PAS1_level = 0;
  volatile uint8_t PAS2_level = 0;
-static volatile uint8_t WSPEED_LEVEL = 0;
+volatile uint8_t WSPEED_LEVEL = 0;
 static volatile uint8_t WSPEED_LEVEL_old = 0;
 
 void quat_cadence_start(void){
@@ -126,14 +126,14 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 		const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
 
 
-		if (WSPEED_LEVEL && !WSPEED_LEVEL_old){
+		if (!WSPEED_LEVEL && WSPEED_LEVEL_old){
 			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;
 			old_timestamp_wheel = timestamp;
-		}
-		if (period_wheel > MAX_WHEEL_PERIOD) {
-			wheel_rpm = 0;
-		} else {
 			wheel_rpm = 60.0/period_wheel;
+		} else {
+			if ( (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY>MAX_WHEEL_PERIOD){
+				wheel_rpm = 0;
+			}
 		}
 
 		if (direction_qem == 2) continue;
@@ -151,6 +151,7 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			}
 			cadence_rpm = 60.0 / period_filtered;
 			cadence_rpm *= (direction_conf * (float)direction_qem);
+			if (cadence_rpm < 0) cadence_rpm = 0;
 		}	else {
 			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
 			// if no pedal activity, set RPM as zero
