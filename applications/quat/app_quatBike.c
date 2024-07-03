@@ -245,7 +245,7 @@ void setLoopVariables(void){
 		  miLoop.loop_overshoot = miLoop.diff_time - (miLoop.loop_time - roundf(miLoop.filtered_loop_overshoot));
 		  miLoop.filtered_loop_overshoot = miLoop.loop_overshoot_alpha * miLoop.loop_overshoot + (1-miLoop.loop_overshoot_alpha)*miLoop.filtered_loop_overshoot;
 	  }
-	  miLoop.dt = ST2S(miLoop.diff_time);
+	  miLoop.dt = (float) miLoop.diff_time/ (float)CH_CFG_ST_FREQUENCY;
 }
 
 void app_init_graphs(void){

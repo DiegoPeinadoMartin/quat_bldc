@@ -51,11 +51,15 @@ int8_t direction_qem;
 uint8_t new_state;
 static uint8_t old_state = 0;
 static systime_t old_timestamp = 0;
+static systime_t old_timestamp_event = 0;
 static float timeinterval = 0;
 static systime_t old_timestamp_wheel = 0;
 static float inactivity_time = 0;
-static float period_filtered = 0;
 float period_cadence = 0;
+volatile float cadence_measured = 0;
+volatile float cadence_measured_old = 0;
+volatile float cadence_extrapolated = 0;
+volatile float slope = 0;
 volatile float period_wheel = 1e20;
 //static int32_t correct_direction_counter = 0;
 
@@ -63,6 +67,7 @@ volatile float period_wheel = 1e20;
  volatile uint8_t PAS2_level = 0;
 volatile uint8_t WSPEED_LEVEL = 0;
 static volatile uint8_t WSPEED_LEVEL_old = 0;
+bool evento = false;
 
 void quat_cadence_start(void){
 	quat_cadence_thread_stop_now = false;
@@ -100,9 +105,8 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	palSetPadMode(HW_QUAD_WHEEL_SENSOR_PORT, HW_QUAD_WHEEL_SENSOR_PIN, PAL_MODE_INPUT_PULLUP); // sensor velocidad de la rueda
 
 	for(;;) {
-		//period_cadence = 0;
-		//cadence_rpm = 0;
 
+		// CONTROL THREAD FREQUENCY
 		systime_t sleep_time = CH_CFG_ST_FREQUENCY / AppConf->app_pas_conf.update_rate_hz;
 		// At least one tick should be slept to not block the other threads
 		if (sleep_time == 0) {
@@ -110,22 +114,67 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 		}
 		chThdSleep(sleep_time);
 
+		// CONTROL IF THREAD HAS TO DIE
 		if (quat_cadence_thread_stop_now) {
 			quat_cadence_thread_is_running = false;
 			return;
 		}
 
+		// READ PAS SENSOR 1 AND SENSOR 2. ALSO READ WHEEL SPEED SENSOR
 		PAS1_level = palReadPad(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN);
 		PAS2_level = palReadPad(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN);
 		WSPEED_LEVEL = palReadPad(HW_QUAD_WHEEL_SENSOR_PORT, HW_QUAD_WHEEL_SENSOR_PIN);
 
+		// QUADRATURE ENCODED ROTATION DIRECTION
 		old_state = new_state;
 		new_state = PAS2_level * 2 + PAS1_level;
 		direction_qem = (float) QEM[old_state * 4 + new_state];
 
+		// NEW TIME STAMP
 		const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
 
 
+		// DETECT NEW CADENCE EVENT
+		if (direction_qem == 2) continue; // something bad
+		if( new_state == 3 && direction_qem != 0) { // NEW EVENT OCURRED ( ns=3 and  it is the first time
+			evento = true;
+			inactivity_time = 0.0; // reset inactivity time
+			timeinterval = timestamp - old_timestamp_event; // read Tau_p or time interval between events, and take into account possible clock overflow
+			if (timestamp < old_timestamp_event) {
+				timeinterval += TIME_MAX_SYSTIME;
+			}
+			period_cadence = (timeinterval) / (float)CH_CFG_ST_FREQUENCY * (float)AppConf->app_pas_conf.magnets;
+			if (period_cadence < min_cadence_period) { //it can not be that sort, abort
+				continue;
+			}
+			cadence_measured_old = cadence_measured;
+			cadence_measured = 60.0 / period_cadence;
+			cadence_measured *=  (direction_conf * (float)direction_qem);
+			slope = (cadence_measured - cadence_measured_old)/period_cadence;
+			old_timestamp_event = timestamp;
+
+		}	else {
+			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
+			// if no pedal activity, set RPM as zero
+			if(inactivity_time > max_pulse_period) {
+				cadence_measured = 0.0;
+				cadence_measured_old = 0.0;
+				cadence_extrapolated = 0.0;
+				slope = 0.0;
+			}
+			float dt = (timestamp - old_timestamp)/(float) CH_CFG_ST_FREQUENCY;
+			old_timestamp = timestamp;
+			cadence_extrapolated = cadence_extrapolated+slope*dt;
+		}
+		if (evento) {
+			evento = false;
+			cadence_rpm = (cadence_extrapolated+cadence_measured)/2.0;
+			cadence_extrapolated = cadence_measured;
+		} else {
+			cadence_rpm = cadence_extrapolated;
+		}
+
+		// WHEEL SPEED MEASUREMENT
 		if (!WSPEED_LEVEL && WSPEED_LEVEL_old){
 			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;
 			old_timestamp_wheel = timestamp;
@@ -136,29 +185,6 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			}
 		}
 
-		if (direction_qem == 2) continue;
-		if( new_state == 3 && direction_qem != 0) {
-			inactivity_time = 0.0;
-			timeinterval = timestamp - old_timestamp;
-			if (timestamp < old_timestamp) {
-				timeinterval += TIME_MAX_SYSTIME;
-			}
-			period_cadence = (timestamp - old_timestamp) / (float)CH_CFG_ST_FREQUENCY * (float)AppConf->app_pas_conf.magnets;
-			old_timestamp = timestamp;
-			UTILS_LP_MOVING_AVG_APPROX(period_filtered, period_cadence, 5);
-			if(period_filtered < min_cadence_period) { //can't be that short, abort
-				continue;
-			}
-			cadence_rpm = 60.0 / period_filtered;
-			cadence_rpm *= (direction_conf * (float)direction_qem);
-			//if (cadence_rpm < 0) cadence_rpm = 0;
-		}	else {
-			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
-			// if no pedal activity, set RPM as zero
-			if(inactivity_time > max_pulse_period) {
-				cadence_rpm = 0.0;
-			}
-		}
 		WSPEED_LEVEL_old = WSPEED_LEVEL;
 	}
 }
