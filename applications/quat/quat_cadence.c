@@ -39,6 +39,14 @@ typedef struct {
 	uint8_t oversampling;
 } t_magnetometer;
 
+// Public variables
+
+volatile float cadence_rpm;
+volatile float wheel_rpm;
+volatile float period_wheel;
+volatile uint8_t PAS1_level;
+volatile uint8_t PAS2_level;
+volatile uint8_t WSPEED_LEVEL;
 
 // Private variables
 static THD_FUNCTION(quat_cadence_process_thread, arg);
@@ -89,19 +97,53 @@ void quat_cadence_configure(void){
 	 quat_reset_magnetometer();
 }
 
+static uint8_t  quat_ready_magnetometer(void){
+	uint8_t rxb[2];
+	uint8_t txb[2];
+
+	txb[0] = QMC5883L_STATUS;
+	bool res = i2c_bb_tx_rx(&i2ccompass, compass.addr, txb, 1, rxb, 1);
+
+	if (res) {
+		return rxb[0] & QMC5883L_STATUS_DRDY;
+	} else {
+		return 0;
+	}
+}
+
+static uint8_t quat_read_magnetometer(int16_t *valores){
+	tx_buf[0] = QMC5883L_X_LSB;
+
+	bool res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 1, rx_buf, 6);
+	if (!res) {
+		return 0;
+	}
+
+	// Magnetometer values
+	for (int i = 0;i < 3; i++) {
+		valores[i] = (int16_t) (   rx_buf[2 * i] | (int16_t) (rx_buf[2 * i + 1] << 8) );
+	}
+
+	return 1;
+}
+
 void quat_reset_magnetometer(void){
 	bool res;
 	i2c_bb_restore_bus(&i2ccompass);
 	tx_buf[0] = QMC5883L_RESET;
 	tx_buf[1] = 0x01;
 	res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 2, rx_buf, 0); //write_register(addr,QMC5883L_RESET,0x01);
+	commands_printf("\nRESET result %s", res ? "true": "false");
 	tx_buf[0] = QMC5883L_CONFIG;
 	tx_buf[1] = compass.oversampling|compass.range|compass.rate|compass.mode;
 	res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 2, rx_buf, 0); //write_register(addr,QMC5883L_CONFIG,oversampling|range|rate|mode);
+	commands_printf("\nCONFIG result %s", res ? "true": "false");
 }
 
 static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	(void)arg;
+
+	int16_t valors[6];
 	chRegSetThreadName("QUAT Cadence");
 
 	quat_cadence_configure();
@@ -122,8 +164,12 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			return;
 		}
 		// NEW TIME STAMP
-		const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
-
-
+		 const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
+		 if (quat_ready_magnetometer()) {
+			 if(quat_read_magnetometer(valors)){
+				 commands_printf("\nMX = %d, MY = %d, MZ = %d", valors[0], valors[1], valors[2]);
+			 }
+			 commands_printf("TIEMPO %ld", timestamp);
+		 }
 	}
 }
