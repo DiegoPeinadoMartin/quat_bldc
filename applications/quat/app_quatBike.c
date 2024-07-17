@@ -148,7 +148,7 @@ void app_custom_configure(app_configuration *conf) {
 	AppConf = conf;
 	mc_conf = mc_interface_get_configuration();
 
-	quat_cadence_configure();
+//	quat_cadence_configure();
 
 	/*
 	 * INICIALIZACIÓN CONTROL TIEMPOS DE CICLO: miLoop

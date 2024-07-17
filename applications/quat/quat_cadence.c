@@ -9,8 +9,10 @@
 #include "ch.h"
 #include "hal.h"
 
+#include "i2c_bb.h"
 #include "utils.h"
 #include "commands.h"
+
 
 #include "quat_cadence.h"
 #include "app_quatBike.h"
@@ -25,49 +27,33 @@ extern volatile t_ebike_model myBike;
 
 // *****************************************
 
-#define HW_QUAD_SENSOR1_PORT									HW_UART_P_TX_PORT
-#define HW_QUAD_SENSOR1_PIN										HW_UART_P_TX_PIN
-#define HW_QUAD_SENSOR2_PORT									HW_UART_P_RX_PORT
-#define HW_QUAD_SENSOR2_PIN										HW_UART_P_RX_PIN
-#define HW_QUAD_WHEEL_SENSOR_PORT  					HW_ICU_GPIO
-#define HW_QUAD_WHEEL_SENSOR_PIN  						HW_ICU_PIN
+typedef struct {
+	int16_t xh;
+	int16_t xl;
+	int16_t yh;
+	int16_t yl;
+	uint8_t addr;
+	uint8_t mode;
+	uint8_t rate;
+	uint8_t range;
+	uint8_t oversampling;
+} t_magnetometer;
 
-#define MAX_WHEEL_PERIOD													3
 
+// Private variables
 static THD_FUNCTION(quat_cadence_process_thread, arg);
 static THD_WORKING_AREA(quat_cadence_process_thread_wa, 512);
 
 static volatile bool quat_cadence_thread_is_running = false;
 static volatile bool quat_cadence_thread_stop_now = true;
+static unsigned char rx_buf[6];
+static unsigned char tx_buf[2];
 
-static volatile float max_pulse_period = 0.0;
-static volatile float min_cadence_period = 0.0;
-static volatile float direction_conf = 0.0;
-volatile float cadence_rpm = 0;
-volatile float wheel_rpm = 0;
+static i2c_bb_state i2ccompass;
+static t_magnetometer compass;
 
-const int8_t QEM[] = {0,-1,1,2,1,0,2,-1,-1,2,0,1,2,1,-1,0}; // Quadrature Encoder Matrix
-int8_t direction_qem;
-uint8_t new_state;
-static uint8_t old_state = 0;
-static systime_t old_timestamp = 0;
-static systime_t old_timestamp_event = 0;
-static float timeinterval = 0;
-static systime_t old_timestamp_wheel = 0;
-static float inactivity_time = 0;
-float period_cadence = 0;
-volatile float cadence_measured = 0;
-volatile float cadence_measured_old = 0;
-volatile float cadence_extrapolated = 0;
-volatile float slope = 0;
-volatile float period_wheel = 1e20;
-//static int32_t correct_direction_counter = 0;
-
- volatile uint8_t PAS1_level = 0;
- volatile uint8_t PAS2_level = 0;
-volatile uint8_t WSPEED_LEVEL = 0;
-static volatile uint8_t WSPEED_LEVEL_old = 0;
-bool evento = false;
+// Private functions
+void quat_reset_magnetometer(void);
 
 void quat_cadence_start(void){
 	quat_cadence_thread_stop_now = false;
@@ -88,21 +74,37 @@ void quat_cadence_stop(void){
 
 void quat_cadence_configure(void){
 	// configuración cadencia
-		max_pulse_period = 1.0 / ((AppConf->app_pas_conf.pedal_rpm_start / 60.0) * AppConf->app_pas_conf.magnets) * 1.2;
-		min_cadence_period = 1.0 / ((AppConf->app_pas_conf.pedal_rpm_end * 3.0 / 60.0));
-		(AppConf->app_pas_conf.invert_pedal_direction) ? (direction_conf = -1.0) : (direction_conf = 1.0);
+	i2ccompass.sda_gpio = HW_I2C_SDA_PORT;
+	i2ccompass.sda_pin = HW_I2C_SDA_PIN;
+	i2ccompass.scl_gpio = HW_I2C_SCL_PORT;
+	i2ccompass.scl_pin = HW_I2C_SCL_PIN;
+	i2ccompass.rate = I2C_BB_RATE_400K;
+	i2c_bb_init(&i2ccompass);
 
-		commands_printf("Max pulse period = %f", (double) max_pulse_period);
-		commands_printf("Min cadence period = %f", (double) min_cadence_period);
-		commands_printf("direction_conf = %f", (double) direction_conf);
+	 compass.addr = QMC5883L_ADDR;
+	 compass.oversampling = QMC5883L_CONFIG_OS512;
+	 compass.range = QMC5883L_CONFIG_2GAUSS;
+	 compass.rate = QMC5883L_CONFIG_50HZ;
+	 compass.mode = QMC5883L_CONFIG_CONT;
+	 quat_reset_magnetometer();
+}
+
+void quat_reset_magnetometer(void){
+	bool res;
+	i2c_bb_restore_bus(&i2ccompass);
+	tx_buf[0] = QMC5883L_RESET;
+	tx_buf[1] = 0x01;
+	res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 2, rx_buf, 0); //write_register(addr,QMC5883L_RESET,0x01);
+	tx_buf[0] = QMC5883L_CONFIG;
+	tx_buf[1] = compass.oversampling|compass.range|compass.rate|compass.mode;
+	res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 2, rx_buf, 0); //write_register(addr,QMC5883L_CONFIG,oversampling|range|rate|mode);
 }
 
 static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	(void)arg;
 	chRegSetThreadName("QUAT Cadence");
-	palSetPadMode(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN, PAL_MODE_INPUT_PULLUP); // sensor de cadencia
-	palSetPadMode(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN, PAL_MODE_INPUT_PULLUP); // sensor de cadencia
-	palSetPadMode(HW_QUAD_WHEEL_SENSOR_PORT, HW_QUAD_WHEEL_SENSOR_PIN, PAL_MODE_INPUT_PULLUP); // sensor velocidad de la rueda
+
+	quat_cadence_configure();
 
 	for(;;) {
 
@@ -119,72 +121,9 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			quat_cadence_thread_is_running = false;
 			return;
 		}
-
-		// READ PAS SENSOR 1 AND SENSOR 2. ALSO READ WHEEL SPEED SENSOR
-		PAS1_level = palReadPad(HW_QUAD_SENSOR1_PORT, HW_QUAD_SENSOR1_PIN);
-		PAS2_level = palReadPad(HW_QUAD_SENSOR2_PORT, HW_QUAD_SENSOR2_PIN);
-		WSPEED_LEVEL = palReadPad(HW_QUAD_WHEEL_SENSOR_PORT, HW_QUAD_WHEEL_SENSOR_PIN);
-
-		// QUADRATURE ENCODED ROTATION DIRECTION
-		old_state = new_state;
-		new_state = PAS2_level * 2 + PAS1_level;
-		direction_qem = (float) QEM[old_state * 4 + new_state];
-
 		// NEW TIME STAMP
 		const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
 
 
-		// DETECT NEW CADENCE EVENT
-		if (direction_qem == 2) continue; // something bad
-		if( new_state == 3 && direction_qem != 0) { // NEW EVENT OCURRED ( ns=3 and  it is the first time
-			evento = true;
-			inactivity_time = 0.0; // reset inactivity time
-			timeinterval = timestamp - old_timestamp_event; // read Tau_p or time interval between events, and take into account possible clock overflow
-			if (timestamp < old_timestamp_event) {
-				timeinterval += TIME_MAX_SYSTIME;
-			}
-			period_cadence = (timeinterval) / (float)CH_CFG_ST_FREQUENCY * (float)AppConf->app_pas_conf.magnets;
-			if (period_cadence < min_cadence_period) { //it can not be that sort, abort
-				continue;
-			}
-			cadence_measured_old = cadence_measured;
-			cadence_measured = 60.0 / period_cadence;
-			cadence_measured *=  (direction_conf * (float)direction_qem);
-			slope = (cadence_measured - cadence_measured_old)/period_cadence;
-			old_timestamp_event = timestamp;
-
-		}	else {
-			inactivity_time += 1.0 / (float)AppConf->app_pas_conf.update_rate_hz;
-			// if no pedal activity, set RPM as zero
-			if(inactivity_time > max_pulse_period) {
-				cadence_measured = 0.0;
-				cadence_measured_old = 0.0;
-				cadence_extrapolated = 0.0;
-				slope = 0.0;
-			}
-			float dt = (timestamp - old_timestamp)/(float) CH_CFG_ST_FREQUENCY;
-			old_timestamp = timestamp;
-			cadence_extrapolated = cadence_extrapolated+slope*dt;
-		}
-		if (evento) {
-			evento = false;
-			cadence_rpm = (cadence_extrapolated+cadence_measured)/2.0;
-			cadence_extrapolated = cadence_measured;
-		} else {
-			cadence_rpm = cadence_extrapolated;
-		}
-
-		// WHEEL SPEED MEASUREMENT
-		if (!WSPEED_LEVEL && WSPEED_LEVEL_old){
-			period_wheel = (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY;
-			old_timestamp_wheel = timestamp;
-			wheel_rpm = 60.0/period_wheel;
-		} else {
-			if ( (timestamp - old_timestamp_wheel)  / (float)CH_CFG_ST_FREQUENCY>MAX_WHEEL_PERIOD){
-				wheel_rpm = 0;
-			}
-		}
-
-		WSPEED_LEVEL_old = WSPEED_LEVEL;
 	}
 }
