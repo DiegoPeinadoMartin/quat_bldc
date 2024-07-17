@@ -12,6 +12,7 @@
 #include "i2c_bb.h"
 #include "utils.h"
 #include "commands.h"
+#include "terminal.h"
 
 
 #include "quat_cadence.h"
@@ -48,9 +49,12 @@ volatile uint8_t PAS1_level;
 volatile uint8_t PAS2_level;
 volatile uint8_t WSPEED_LEVEL;
 
+
 // Private variables
 static THD_FUNCTION(quat_cadence_process_thread, arg);
 static THD_WORKING_AREA(quat_cadence_process_thread_wa, 512);
+
+static void getMagnetometer(int argc, const char **argv);
 
 static volatile bool quat_cadence_thread_is_running = false;
 static volatile bool quat_cadence_thread_stop_now = true;
@@ -59,6 +63,9 @@ static unsigned char tx_buf[2];
 
 static i2c_bb_state i2ccompass;
 static t_magnetometer compass;
+
+int16_t valors[3];
+bool readOk = false;
 
 // Private functions
 void quat_reset_magnetometer(void);
@@ -70,9 +77,11 @@ void quat_cadence_start(void){
 		quat_cadence_thread_is_running = true;
 	}
 	commands_printf("START QUAT Cadence");
+	terminal_register_command_callback(	"quat_mag", "Output Magnetometer Data", "[] ", 	getMagnetometer);
 }
 
 void quat_cadence_stop(void){
+	terminal_unregister_callback(getMagnetometer);
 	quat_cadence_thread_stop_now = true;
 	while (quat_cadence_thread_is_running) {
 		chThdSleepMilliseconds(1);
@@ -90,14 +99,14 @@ void quat_cadence_configure(void){
 	i2c_bb_init(&i2ccompass);
 
 	 compass.addr = QMC5883L_ADDR;
-	 compass.oversampling = QMC5883L_CONFIG_OS512;
-	 compass.range = QMC5883L_CONFIG_2GAUSS;
-	 compass.rate = QMC5883L_CONFIG_50HZ;
+	 compass.oversampling = QMC5883L_CONFIG_OS64;
+	 compass.range = QMC5883L_CONFIG_8GAUSS;
+	 compass.rate = QMC5883L_CONFIG_100HZ;
 	 compass.mode = QMC5883L_CONFIG_CONT;
 	 quat_reset_magnetometer();
 }
 
-static uint8_t  quat_ready_magnetometer(void){
+static int  quat_ready_magnetometer(void){
 	uint8_t rxb[2];
 	uint8_t txb[2];
 
@@ -111,19 +120,16 @@ static uint8_t  quat_ready_magnetometer(void){
 	}
 }
 
-static uint8_t quat_read_magnetometer(int16_t *valores){
+static int quat_read_magnetometer(int16_t* valores){
 	tx_buf[0] = QMC5883L_X_LSB;
-
 	bool res = i2c_bb_tx_rx(&i2ccompass, compass.addr, tx_buf, 1, rx_buf, 6);
 	if (!res) {
 		return 0;
 	}
-
 	// Magnetometer values
-	for (int i = 0;i < 3; i++) {
-		valores[i] = (int16_t) (   rx_buf[2 * i] | (int16_t) (rx_buf[2 * i + 1] << 8) );
+	for (int i = 0; i < 3; i++) {
+		valores[i] = (  (int16_t) rx_buf[2 * i]  |  ( (int16_t)  rx_buf[2 * i + 1] << 8) );
 	}
-
 	return 1;
 }
 
@@ -142,11 +148,12 @@ void quat_reset_magnetometer(void){
 
 static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	(void)arg;
-
-	int16_t valors[6];
 	chRegSetThreadName("QUAT Cadence");
 
 	quat_cadence_configure();
+	int16_t raw_mag_tmp[3];
+	commands_printf("\nRESULTADO DE READY %s", quat_ready_magnetometer() ? "True": "False");
+	commands_printf("\nRESULTADO DE READ DATA %s", quat_read_magnetometer(raw_mag_tmp) ? "True": "False");
 
 	for(;;) {
 
@@ -164,12 +171,24 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			return;
 		}
 		// NEW TIME STAMP
-		 const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
+//		 const systime_t timestamp = chVTGetSystemTimeX(); //  /(float)CH_CFG_ST_FREQUENCY;
 		 if (quat_ready_magnetometer()) {
-			 if(quat_read_magnetometer(valors)){
-				 commands_printf("\nMX = %d, MY = %d, MZ = %d", valors[0], valors[1], valors[2]);
+			 if (quat_read_magnetometer(valors)){
+				 readOk = true;
+			 } else {
+				 readOk = false;
 			 }
-			 commands_printf("TIEMPO %ld", timestamp);
 		 }
+	}
+}
+
+static void getMagnetometer(int argc, const char **argv) {
+	(void) argv;
+	if (argc == 1) {
+		if (readOk){
+			commands_printf("\nMX= %d\t MY = %d\t MZ = %d", valors[0], valors[1], valors[2]);
+		} else {
+			commands_printf("\nERROR LECTURA MAGNETÓMETRO");
+		}
 	}
 }
