@@ -57,7 +57,7 @@ static THD_WORKING_AREA(quat_send_data_thread_wa, 512);
 static volatile bool quat_send_data_stop_now = true;
 static volatile bool quat_send_data_is_running = false;
 
-extern volatile app_configuration *AppConf;
+extern app_configuration *AppConf;
 
 // Called when the custom application is started. Start our
 // threads here and set up callbacks.

@@ -45,8 +45,8 @@ extern volatile uint8_t WSPEED_LEVEL;
 // ***************************************
 // SHARED VARIABLES ********************
 
-volatile app_configuration *AppConf;
-volatile t_ebike_model myBike;
+app_configuration *AppConf;
+t_ebike_model myBike;
 // ***************************************
 
 // Threads POINTERS
@@ -127,6 +127,12 @@ void app_custom_start(void) {
 	terminal_register_command_callback(	"quat_graph", 	"Output real time values to the experiments graph", "[On(1)/Off(0)] ", 	setGraphOn);
 	terminal_register_command_callback("qsetvel", "set values of velocity", "blabla", getVelocities);
 	terminal_register_command_callback("quat_reset", "reset", "", setResetSim);
+
+	quat_display_serial_start();
+	quat_cadence_start();
+	if (myBike.myConf.sendData){
+		quat_send_data_start();
+	}
 }
 
 void app_custom_stop(void) {
@@ -134,13 +140,15 @@ void app_custom_stop(void) {
 	terminal_unregister_callback(setGraphOn);
 	terminal_unregister_callback(getVelocities);
 	terminal_unregister_callback(setResetSim);
+
+	quat_display_serial_stop();
+	quat_cadence_stop();
+
 	Quat_stop_now = true;
 	while (Quat_is_running) {
 		chThdSleepMilliseconds(1);
 	}
 	commands_printf("STOP QuatApp");
-	quat_display_serial_stop();
-	quat_cadence_stop();
 	if (myBike.myConf.sendData) quat_send_data_stop();
 }
 
@@ -148,7 +156,10 @@ void app_custom_configure(app_configuration *conf) {
 	AppConf = conf;
 	mc_conf = mc_interface_get_configuration();
 
-//	quat_cadence_configure();
+	quat_cadence_configure();
+	if (myBike.myConf.sendData){
+		quat_send_data_configure();
+	}
 
 	/*
 	 * INICIALIZACIÓN CONTROL TIEMPOS DE CICLO: miLoop
@@ -171,8 +182,8 @@ void app_custom_configure(app_configuration *conf) {
 	myBike.myMotorState = STOPPED;
 
 	myBike.myBicycloidal.chainring_rpm = 0;
-	myBike.myBicycloidal.motor_erpm;
-	myBike.myBicycloidal.motor_rpm;
+	myBike.myBicycloidal.motor_erpm = 0;
+	myBike.myBicycloidal.motor_rpm = 0;
 	myBike.myBicycloidal.pedal_rpm = 0;
 
 	myBike.myDisplayData.motor_intensity = 0;
@@ -600,11 +611,6 @@ static THD_FUNCTION(quat_thread, arg) {
 	chRegSetThreadName("QUAT EBike");
 	Quat_is_running = true;
 
-	quat_display_serial_start();
-	quat_cadence_start();
-	if (myBike.myConf.sendData){
-		quat_send_data_start();
-	}
 	app_init_graphs();
 
 	for(;;) {
@@ -664,8 +670,8 @@ static void setResetSim(int argc, const char **argv){
 	myBike.myMotorState = STOPPED;
 
 	myBike.myBicycloidal.chainring_rpm = 0;
-	myBike.myBicycloidal.motor_erpm;
-	myBike.myBicycloidal.motor_rpm;
+	myBike.myBicycloidal.motor_erpm = 0;
+	myBike.myBicycloidal.motor_rpm = 0;
 	myBike.myBicycloidal.pedal_rpm = 0;
 
 	myBike.myDisplayData.motor_intensity = 0;
