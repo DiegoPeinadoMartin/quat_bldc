@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "commands.h"
 #include "terminal.h"
-
+#include <stdio.h>
 
 #include "quat_cadence.h"
 #include "app_quatBike.h"

@@ -87,7 +87,8 @@ HW_SOURCE = "hwconf/trampa/60_75/hw_60_75_core.c"
 //#include "er/app_erockit_conf_v2.h"
 //#include "finn/app_finn_az_conf.h"
 
-#define APP_CUSTOM_TO_USE		"quat/app_quatBike.c"
+//#define APP_CUSTOM_TO_USE		"quat/app_quatBike.c"
+#define APP_CUSTOM_TO_USE		"quat/app_id_iq.c"
 
 #include "hw.h"
 #include "mcconf_default.h"

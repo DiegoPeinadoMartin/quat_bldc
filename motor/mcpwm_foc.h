@@ -39,6 +39,7 @@ void mcpwm_foc_set_duty_noramp(float dutyCycle);
 void mcpwm_foc_set_pid_speed(float rpm);
 void mcpwm_foc_set_pid_pos(float pos);
 void mcpwm_foc_set_current(float current);
+void mcpwm_foc_set_current_id_iq(float current_id, float current_iq);
 void mcpwm_foc_release_motor(void);
 void mcpwm_foc_set_brake_current(float current);
 void mcpwm_foc_set_handbrake(float current);

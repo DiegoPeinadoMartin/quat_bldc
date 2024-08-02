@@ -789,6 +789,29 @@ void mcpwm_foc_set_current(float current) {
 	}
 }
 
+// QUAT START
+// function to set id and iq independently
+// there is another change in mcpwm_foc_adc_int_handler VERY IMPORTANT.
+// It is CRITICAL to remove that change to recover normal VESC behaviour
+
+void mcpwm_foc_set_current_id_iq(float current_id, float current_iq) {
+	get_motor_now()->m_control_mode = CONTROL_MODE_CURRENT;
+	get_motor_now()->m_iq_set = current_iq;
+	get_motor_now()->m_id_set = current_id;
+	//float current = NORM2_f(current_id, current_iq);
+
+	if (fabsf(current_iq) < get_motor_now()->m_conf->cc_min_current) {
+		return;
+	}
+
+	if (get_motor_now()->m_state != MC_STATE_RUNNING) {
+		get_motor_now()->m_motor_released = false;
+		get_motor_now()->m_state = MC_STATE_RUNNING;
+	}
+}
+
+// QUAT END
+
 void mcpwm_foc_release_motor(void) {
 	get_motor_now()->m_control_mode = CONTROL_MODE_CURRENT;
 	get_motor_now()->m_iq_set = 0.0;
@@ -3086,10 +3109,14 @@ void mcpwm_foc_adc_int_handler(void *p, uint32_t flags) {
 		float current_max_abs = fabsf(utils_max_abs(conf_now->lo_current_max, conf_now->lo_current_min));
 		utils_truncate_number_abs(&id_set_tmp, current_max_abs);
 		utils_truncate_number_abs(&iq_set_tmp, sqrtf(SQ(current_max_abs) - SQ(id_set_tmp)));
-
-		motor_now->m_motor_state.id_target = id_set_tmp;
-		motor_now->m_motor_state.iq_target = iq_set_tmp;
-
+// 	QUAT START
+// 	it is CRITICAL TO REMOVE THIS CHANGE TO RECOVER NORMAL VESC BEHAVIOUR
+// 	set id and iq independently of any algorithm
+//		motor_now->m_motor_state.id_target = id_set_tmp; // TO BE RESTORED
+//		motor_now->m_motor_state.iq_target = iq_set_tmp;//  TO BE RESTORED
+		motor_now->m_motor_state.id_target = motor_now->m_id_set; // TO BE REMOVED
+		motor_now->m_motor_state.iq_target = motor_now->m_iq_set; // TO BE REMOVED
+// 	QUAT END
 		control_current(motor_now, dt);
 	} else {
 		// Motor is not running

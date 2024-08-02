@@ -673,6 +673,34 @@ void mc_interface_set_current(float current) {
 	events_add("set_current", current);
 }
 
+//	QUAT START
+// function to interface other created function
+void mc_interface_set_current_id_iq(float current_id, float current_iq)  {
+	if (fabsf(current_iq) > 0.001) {
+		SHUTDOWN_RESET();
+	}
+
+	if (mc_interface_try_input()) {
+		return;
+	}
+
+	switch (motor_now()->m_conf.motor_type) {
+	case MOTOR_TYPE_BLDC:
+	case MOTOR_TYPE_DC:
+		mcpwm_set_current(DIR_MULT * current_iq);
+		break;
+
+	case MOTOR_TYPE_FOC:
+		mcpwm_foc_set_current_id_iq( DIR_MULT * current_id, DIR_MULT * current_iq);
+		break;
+
+	default:
+		break;
+	}
+	events_add("set_current", current_iq);
+}
+
+// QUAT END
 void mc_interface_set_brake_current(float current) {
 	if (fabsf(current) > 0.001) {
 		SHUTDOWN_RESET();
