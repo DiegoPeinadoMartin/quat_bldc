@@ -489,6 +489,12 @@ void commands_process_packet(unsigned char *data, unsigned int len,
 		timeout_reset();
 	} break;
 
+	case COMM_SET_CURRENT_ID_IQ:{
+		int32_t ind = 0;
+		mc_interface_set_current_id_iq((float)buffer_get_int32(data, &ind)/1000.0, (float)buffer_get_int32(data, &ind)/1000.0);
+		timeout_reset();
+	} break;
+
 	case COMM_SET_CURRENT_BRAKE: {
 		int32_t ind = 0;
 		mc_interface_set_brake_current((float)buffer_get_int32(data, &ind) / 1000.0);
