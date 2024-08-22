@@ -13,7 +13,7 @@
 #include "utils.h"
 #include "commands.h"
 #include "terminal.h"
-
+#include "stdio.h"
 
 #include "quat_cadence.h"
 #include "app_quatBike.h"
@@ -122,7 +122,6 @@ void quat_cadence_configure(void){
 	commands_printf("\nIniciado, no reseteado");
 	quat_reset_magnetometer();
 	commands_printf("\nReseteado");
-
 	compass.xl = compass.xh = compass.yl = compass.yh = compass.zh = compass.zl = 0;
 	compass.xOffset = AppConf->imu_conf.rot_roll*1000;
 	compass.yOffset = AppConf->imu_conf.rot_pitch*1000;
@@ -227,7 +226,7 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 		uint16_t cuentas = 0;
 		// CONTROL THREAD FREQUENCY
 		// systime_t sleep_time = CH_CFG_ST_FREQUENCY / AppConf->app_pas_conf.update_rate_hz;
-		systime_t sleep_time = CH_CFG_ST_FREQUENCY/300.0;
+		systime_t sleep_time = CH_CFG_ST_FREQUENCY/200.0;
 		// At least one tick should be slept to not block the other threads
 		if (sleep_time == 0) {
 			sleep_time = 1;

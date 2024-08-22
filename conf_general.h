@@ -33,7 +33,7 @@
 
 #if !defined(HW_SOURCE) && !defined(HW_SOURCE_ALT)
 //#error "No hardware source file set"
-HW_SOURCE = "hwconf/trampa/60_75/hw_60_75_core.c"
+//HW_SOURCE = "hwconf/trampa/60_75/hw_60_75_core.c"
 #endif
 
 #ifndef HW_HEADER
