@@ -21,6 +21,7 @@ typedef struct {
 	float loop_overshoot_alpha;
 	float filtered_diff_time;
 	float dt;
+	bool testMode;
 } LoopManagerType;
 
 typedef enum {

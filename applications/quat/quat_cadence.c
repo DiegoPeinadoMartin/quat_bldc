@@ -126,7 +126,7 @@ void quat_cadence_configure(void){
 	compass.xOffset = AppConf->imu_conf.rot_roll*1000;
 	compass.yOffset = AppConf->imu_conf.rot_pitch*1000;
 	compass.zOffset = AppConf->imu_conf.rot_yaw*1000;
-	commands_printf("\nInicializado Compass limits");
+	commands_printf("\nInicializado Compass limits\n");
 }
 
 static int  quat_ready_magnetometer(void){
@@ -194,7 +194,7 @@ static int quat_calibrate_mag(void){
 }
 
 static void quat_get_heading(void){
-		float heading = (float) 180.0* (float) atan2((double) valors[0], (double) -valors[1])/M_PI;
+		float heading = (float) 180.0* (float) atan2((double) valors[0], (double) -valors[2])/M_PI;
 		if(heading<=0) heading += 360.0;
 		myHeading = (int16_t) heading;
 }
@@ -215,6 +215,7 @@ void quat_reset_magnetometer(void){
 static THD_FUNCTION(quat_cadence_process_thread, arg) {
 	(void)arg;
 	chRegSetThreadName("QUAT Cadence");
+	quat_cadence_configure();
 	chThdSleep((systime_t) 30000);
 
 	int16_t raw_mag_tmp[3];
@@ -262,7 +263,7 @@ static THD_FUNCTION(quat_cadence_process_thread, arg) {
 			 }
 		 } else {
 			 cuentas++;
-			 if (cuentas >= 100){
+			 if (cuentas >= 10){
 				 readOk = false;
 				 cuentas = 0;
 			 }

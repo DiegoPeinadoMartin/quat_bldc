@@ -81,6 +81,7 @@ static void setGraphOn(int argc, const char **argv);
 static void getProgram(int argc, const char **argv);
 static void getVelocities(int argc, const char **argv);
 static void setResetSim(int argc, const char **argv);
+static void setTestMode(int argc, const char **argv);
 
 void sendGraphs_experiment(void);
 
@@ -127,12 +128,7 @@ void app_custom_start(void) {
 	terminal_register_command_callback(	"quat_graph", 	"Output real time values to the experiments graph", "[On(1)/Off(0)] ", 	setGraphOn);
 	terminal_register_command_callback("qsetvel", "set values of velocity", "blabla", getVelocities);
 	terminal_register_command_callback("quat_reset", "reset", "", setResetSim);
-
-	quat_display_serial_start();
-	quat_cadence_start();
-	if (myBike.myConf.sendData){
-		quat_send_data_start();
-	}
+	terminal_register_command_callback("quat_testmode", "Bike does not respond, motor spins only in VescTool", "[On(1)/Off(0)] ", setTestMode);
 }
 
 void app_custom_stop(void) {
@@ -140,16 +136,14 @@ void app_custom_stop(void) {
 	terminal_unregister_callback(setGraphOn);
 	terminal_unregister_callback(getVelocities);
 	terminal_unregister_callback(setResetSim);
-
-	quat_display_serial_stop();
-	quat_cadence_stop();
+	terminal_unregister_callback(setTestMode);
 
 	Quat_stop_now = true;
 	while (Quat_is_running) {
 		chThdSleepMilliseconds(1);
 	}
 	commands_printf("STOP QuatApp");
-	if (myBike.myConf.sendData) quat_send_data_stop();
+
 }
 
 void app_custom_configure(app_configuration *conf) {
@@ -178,6 +172,7 @@ void app_custom_configure(app_configuration *conf) {
 	    miLoop.loop_overshoot_alpha = 2*M_PI*((float)1/miLoop.hertz)*miLoop.loop_time_filter/(2*M_PI*((float)1/miLoop.hertz)*miLoop.loop_time_filter+1);
 	 }
 	miLoop.dt = 1.0/miLoop.hertz;
+	miLoop.testMode = false;
     // ****************************************************
 	myBike.myMotorState = STOPPED;
 
@@ -611,10 +606,17 @@ static THD_FUNCTION(quat_thread, arg) {
 	chRegSetThreadName("QUAT EBike");
 	Quat_is_running = true;
 
+	//quat_display_serial_start();
+	quat_cadence_start();
+	//if (myBike.myConf.sendData) quat_send_data_start();
+
 	app_init_graphs();
 
 	for(;;) {
 		if (Quat_stop_now) {
+			//quat_display_serial_stop();
+			quat_cadence_stop();
+			//if (myBike.myConf.sendData) quat_send_data_stop();
 			Quat_is_running = false;
 			return;
 		}
@@ -622,26 +624,28 @@ static THD_FUNCTION(quat_thread, arg) {
 		setLoopVariables();
 		timeout_reset();
 		actualizaVariables();
-		if (myBike.myConf.modo_moto){
-			mc_interface_set_pid_speed(	NR[(uint8_t) myBike.myDisplayData.progDisplay/51]* myBike.myConf.npolepairs);
-		} else {
-			timeout_reset();
-			transicionEstado();
-			timeout_reset();
-			accionVehiculo();
-			if (myBike.myConf.sendData){
-				quat_set_can_msg(
-						myBike.myMotorState,
-						myBike.myMotorState_OLD,
-						myBike.myBicycloidal.pedal_rpm,
-						myBike.myBicycloidal.motor_rpm,
-						myBike.myBicycloidal.chainring_rpm,
-						myBike.myVariables.motor_reference_rpm,
-						0.0,
-						mc_interface_get_tot_current(),
-						mc_interface_get_input_voltage_filtered(),
-						myBike.myVariables.assistance_program_Factor,
-						false);
+		if (!miLoop.testMode){
+			if (myBike.myConf.modo_moto){
+				mc_interface_set_pid_speed(	NR[(uint8_t) myBike.myDisplayData.progDisplay/51]* myBike.myConf.npolepairs);
+			} else {
+				timeout_reset();
+				transicionEstado();
+				timeout_reset();
+				accionVehiculo();
+				if (myBike.myConf.sendData){
+					quat_set_can_msg(
+							myBike.myMotorState,
+							myBike.myMotorState_OLD,
+							myBike.myBicycloidal.pedal_rpm,
+							myBike.myBicycloidal.motor_rpm,
+							myBike.myBicycloidal.chainring_rpm,
+							myBike.myVariables.motor_reference_rpm,
+							0.0,
+							mc_interface_get_tot_current(),
+							mc_interface_get_input_voltage_filtered(),
+							myBike.myVariables.assistance_program_Factor,
+							false);
+				}
 			}
 		}
 		if (sendGraphs > 0) sendGraphs_experiment();
@@ -836,59 +840,75 @@ void sendGraphs_experiment(void){
 static void getProgram(int argc, const char **argv) {
 	(void) argv;
 	if (argc == 1) {
-		commands_printf("Received data = %u", myBike.myDisplayData.progDisplay);
-		commands_printf("Periodo H= %x", myBike.myDisplayData.motor_periodH);
-		commands_printf("Periodo L= %x", myBike.myDisplayData.motor_periodL);
-		commands_printf("ChainRing = %f", (double) cadence_rpm);
-		commands_printf("Vel = %f", (double) myBike.myVariables.bike_velocity);
-		commands_printf("periodo = %u", periodo);
-		commands_printf("Period_wheel = %f S", (double) period_wheel);
-		commands_printf("*******************************************************************************");
-		commands_printf("Wheel Radius = %f", (double) myBike.myConf.WheelRadius);
-		commands_printf("Transmission Ratio = %f", (double) myBike.myConf.Rtransmision);
-		commands_printf("Wheel Radius Conf = %f",  (double) (mc_conf->si_wheel_diameter/2.0));
-		commands_printf("Transmission Ratio Conf = %f", (double) mc_conf->si_gear_ratio);
+		if (!miLoop.testMode) {
+			commands_printf("Received data = %u", myBike.myDisplayData.progDisplay);
+			commands_printf("Periodo H= %x", myBike.myDisplayData.motor_periodH);
+			commands_printf("Periodo L= %x", myBike.myDisplayData.motor_periodL);
+			commands_printf("ChainRing = %f", (double) cadence_rpm);
+			commands_printf("Vel = %f", (double) myBike.myVariables.bike_velocity);
+			commands_printf("periodo = %u", periodo);
+			commands_printf("Period_wheel = %f S", (double) period_wheel);
+			commands_printf("*******************************************************************************");
+			commands_printf("Wheel Radius = %f", (double) myBike.myConf.WheelRadius);
+			commands_printf("Transmission Ratio = %f", (double) myBike.myConf.Rtransmision);
+			commands_printf("Wheel Radius Conf = %f",  (double) (mc_conf->si_wheel_diameter/2.0));
+			commands_printf("Transmission Ratio Conf = %f", (double) mc_conf->si_gear_ratio);
 
-		commands_printf("*******************************************************************************");
-		commands_printf("W1 = %f RPM", (double) myBike.myBicycloidal.pedal_rpm);
-		commands_printf("W2 = %f RPM", (double) myBike.myBicycloidal.motor_rpm);
-		commands_printf("W3 = %f RPM", (double) myBike.myBicycloidal.chainring_rpm);
-		commands_printf("W3_filtered = %f RPM", (double) myBike.myBicycloidal.chainring_filtered_rpm);
-		commands_printf("Ww = %f RPM", (double) myBike.myVariables.wheel_rpm);
+			commands_printf("*******************************************************************************");
+			commands_printf("W1 = %f RPM", (double) myBike.myBicycloidal.pedal_rpm);
+			commands_printf("W2 = %f RPM", (double) myBike.myBicycloidal.motor_rpm);
+			commands_printf("W3 = %f RPM", (double) myBike.myBicycloidal.chainring_rpm);
+			commands_printf("W3_filtered = %f RPM", (double) myBike.myBicycloidal.chainring_filtered_rpm);
+			commands_printf("Ww = %f RPM", (double) myBike.myVariables.wheel_rpm);
 
-		commands_printf("W2ref = %f ERPM", (double) myBike.myVariables.motor_reference_erpm);
-		commands_printf("W2ref1 = %f RPM", (double) myBike.myVariables.motor_reference_rpm);
-		commands_printf("*******************************************************************************");
-		commands_printf("Modo Display %u", myBike.myDisplayData.progDisplay);
-		commands_printf("Nivel Asistencia %f", (double) myBike.myVariables.assistance_program);
-		commands_printf("Nivel Asistencia Efectiva %f", (double) myBike.myVariables.effective_assistance_program);
-		commands_printf("Factor Asistencia %f", (double) myBike.myVariables.assistance_program_Factor);
+			commands_printf("W2ref = %f ERPM", (double) myBike.myVariables.motor_reference_erpm);
+			commands_printf("W2ref1 = %f RPM", (double) myBike.myVariables.motor_reference_rpm);
+			commands_printf("*******************************************************************************");
+			commands_printf("Modo Display %u", myBike.myDisplayData.progDisplay);
+			commands_printf("Nivel Asistencia %f", (double) myBike.myVariables.assistance_program);
+			commands_printf("Nivel Asistencia Efectiva %f", (double) myBike.myVariables.effective_assistance_program);
+			commands_printf("Factor Asistencia %f", (double) myBike.myVariables.assistance_program_Factor);
 
-		commands_printf("Torque %f", (double) myBike.myVariables.motor_torque);
+			commands_printf("Torque %f", (double) myBike.myVariables.motor_torque);
 
-		commands_printf("*******************************************************************************");
+			commands_printf("*******************************************************************************");
 
-		commands_printf("Rev max motor %f", (double) myBike.myConf.Motor_rev_max);
-		commands_printf("Moto motor = %d", (double) myBike.myConf.modo_moto);
+			commands_printf("Rev max motor %f", (double) myBike.myConf.Motor_rev_max);
+			commands_printf("Moto motor = %d", (double) myBike.myConf.modo_moto);
 
-		float diff = miLoop.diff_time;
-		float sleep_time = miLoop.loop_time - roundf(miLoop.filtered_loop_overshoot);
-		commands_printf("\n%f\t%f", (double)diff, (double)sleep_time);
+			float diff = miLoop.diff_time;
+			float sleep_time = miLoop.loop_time - roundf(miLoop.filtered_loop_overshoot);
+			commands_printf("\n%f\t%f", (double)diff, (double)sleep_time);
 
-		commands_printf("Estado %d", myBike.myMotorState);
-		commands_printf("Estado OLD %d", myBike.myMotorState_OLD);
-#ifdef MIDEPURACION
-		commands_printf("motor rpm leido %f", (double) motorRPLeido);
-		commands_printf("Patino %d", patino);
-#endif
-//		commands_printf("Periodo cadencia = %f", (double) period_cadence);
-//		commands_printf("Periodo filtrado = %f", (double) period_filtered);
-//
-//		commands_printf("new_state %d", new_state);
-//		commands_printf("old_state %d", old_state);
-//		commands_printf("direction qem %f", (double) direction_qem);
-
+			commands_printf("Estado %d", myBike.myMotorState);
+			commands_printf("Estado OLD %d", myBike.myMotorState_OLD);
+	#ifdef MIDEPURACION
+			commands_printf("motor rpm leido %f", (double) motorRPLeido);
+			commands_printf("Patino %d", patino);
+	#endif
+	//		commands_printf("Periodo cadencia = %f", (double) period_cadence);
+	//		commands_printf("Periodo filtrado = %f", (double) period_filtered);
+	//
+	//		commands_printf("new_state %d", new_state);
+	//		commands_printf("old_state %d", old_state);
+	//		commands_printf("direction qem %f", (double) direction_qem);
+		} else {
+			commands_printf("ESTOY EN TEST MODE");
+		}
 	} else {
 		commands_printf("\n\r Uso quat_pa");
   }
+}
+
+static void setTestMode(int argc, const char **argv){
+	if (argc == 2) {
+		int setTestMode = 0;
+	   sscanf(argv[1], "%d", &setTestMode);
+	    if (setTestMode == 0)
+	    	miLoop.testMode = false;
+	    else
+	    	miLoop.testMode  = true;
+	} else {
+	    commands_printf("\n\r Uso quat_testmode (1/0)");
+	  }
 }
